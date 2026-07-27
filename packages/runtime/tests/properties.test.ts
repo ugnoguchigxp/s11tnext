@@ -6,6 +6,7 @@ import { canonicalJson } from "../src/canonical-json.js";
 import { createCatalog } from "../src/catalog.js";
 import { compileCatalog } from "../src/compiler.js";
 import { S11tnextError } from "../src/diagnostics.js";
+import { escapeBoundaryCharacters } from "../src/encoding.js";
 import { hashRendered } from "../src/hash.js";
 import type { JsonValue } from "../src/types.js";
 
@@ -159,10 +160,7 @@ describe("runtime properties", () => {
 				const bodyStart = text.indexOf("\n") + 1;
 				const bodyEnd = text.lastIndexOf("\n</S11TNEXT_DELIMITED_CONTEXT>");
 				const encodedBody = text.slice(bodyStart, bodyEnd);
-				const expected = value.replace(/[<>&\u2028\u2029]/g, (character) => {
-					const code = character.codePointAt(0)!;
-					return `\\u${code.toString(16).padStart(4, "0")}`;
-				});
+				const expected = escapeBoundaryCharacters(value);
 
 				expect(encodedBody).toBe(expected);
 				expect(text.match(/<\/S11TNEXT_DELIMITED_CONTEXT>/g)).toHaveLength(1);

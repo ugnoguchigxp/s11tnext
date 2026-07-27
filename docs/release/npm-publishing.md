@@ -9,8 +9,10 @@ does not authorize a publish; every registry-changing step below is a maintainer
 - Both packages are a fixed Changesets group and must publish the same version.
 - `canary` is a commit-addressed snapshot and must never move `latest`.
 - `stable` is a normal SemVer version from the version PR and must publish from the exact `main` head.
-- Local stable publication is available through `pnpm release:publish`; provenance-enabled bootstrap,
-  canary, and stable publication remain available through `.github/workflows/release.yml`.
+- The supported stable release path is `.github/workflows/release.yml`. It is the only path that
+  completes provenance, immutable tag, and GitHub Release verification.
+- `pnpm release:publish` remains an emergency registry-repair tool; it does not complete the stable
+  release contract by itself.
 - GitHub Actions stable publishing remains disabled until the repository variable
   `S11TNEXT_STABLE_RELEASE_ENABLED` is explicitly set to `true`.
 
@@ -26,7 +28,7 @@ Before any dispatch:
 1. Confirm the maintainer owns the unscoped `s11tnext` and `s11tnext-cli` package names and both are intended
    to be public.
 2. Enable 2FA on every npm maintainer account.
-3. Protect `main` and require the CI matrix.
+3. Protect `main` and require the aggregate `CI / required` check.
 4. Enable GitHub private vulnerability reporting and verify the link in `SECURITY.md`.
 5. Create GitHub environments:
    - `npm-bootstrap`: required reviewer; used once.
@@ -38,9 +40,9 @@ Before any dispatch:
 Both package names are unscoped and public. S11tnext records the public registry explicitly in each
 package's `publishConfig`, and the dry-run also supplies `--access public`.
 
-## One-command local stable publish
+## Local emergency publication
 
-For an authenticated maintainer performing a direct stable release:
+For an authenticated maintainer repairing an explicitly documented registry incident:
 
 ```sh
 pnpm release:publish:plan
@@ -52,10 +54,11 @@ from both package.json files, requires a clean Git checkout and npm authenticati
 stable release dry-run. Only after verification succeeds does it ask the maintainer to type the exact
 version. It publishes `s11tnext` first and `s11tnext-cli` second, then verifies both `latest` dist-tags.
 
-This is the simplest path for a maintainer already authenticated with npm. Use
-`pnpm release:publish -- --yes` only in a controlled non-interactive environment after reviewing the
-plan. A partial publish is immutable: if Runtime succeeds and CLI fails, inspect npm before retrying and
-do not attempt to republish the successful package version.
+This path does not create the workflow provenance statement, annotated Git tag, or GitHub Release and
+must not be used for a normal stable release. Use `pnpm release:publish -- --yes` only for an approved
+repair in a controlled non-interactive environment after reviewing the plan. A partial publish is
+immutable: if Runtime succeeds and CLI fails, inspect npm before retrying and do not attempt to republish
+the successful package version.
 
 ## One-command workflow dispatch
 
@@ -138,7 +141,7 @@ Then:
 
 Do not delete the bootstrap token until one OIDC canary succeeds. Do not retain it after that proof.
 
-## Stable `0.1.0`
+## Stable release
 
 1. Confirm the version PR contains matching non-prerelease versions, generated changelogs, and no pending
    Changesets.
@@ -156,6 +159,7 @@ Do not delete the bootstrap token until one OIDC canary succeeds. Do not retain 
    - a fresh install and CLI invocation succeed;
    - registry signatures and provenance verify;
    - the annotated `v<version>` tag and GitHub Release point to the published commit.
+   - the scheduled `Registry Consumer` workflow passes on Node 20.19, 22, and 24.
 9. Set `S11TNEXT_STABLE_RELEASE_ENABLED=false` again if the gate is intended to remain one-shot.
 
 If npm publication succeeds but tag or GitHub Release creation fails, do not republish the immutable npm

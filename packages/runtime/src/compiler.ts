@@ -25,6 +25,21 @@ export type {
 	CanonicalSectionDefinition,
 	CanonicalVariableDefinition,
 } from "./canonical-definition.js";
+export type {
+	PromptMessageRole,
+	S11tnextCatalogArtifact,
+	S11tnextCompiledContext,
+	S11tnextCompiledLocale,
+	S11tnextCompiledSection,
+	S11tnextCompiledVariable,
+	S11tnextSectionKind,
+	S11tnextSectionSeverity,
+	S11tnextVariableEncoding,
+	S11tnextVariablePlacement,
+	S11tnextVariableTrust,
+	S11tnextVariableType,
+	TemplateSegment,
+} from "./types.js";
 
 export { ARTIFACT_VERSION, COMPILER_VERSION } from "./version.js";
 

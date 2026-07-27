@@ -2,6 +2,8 @@ import { canonicalJson } from "./canonical-json.js";
 import { S11tnextError } from "./diagnostics.js";
 import type { JsonValue, S11tnextCompiledVariable } from "./types.js";
 
+const MAX_JSON_NESTING_DEPTH = 256;
+
 function isPlainObject(value: object): value is Record<string, unknown> {
 	const prototype = Object.getPrototypeOf(value) as unknown;
 	return prototype === Object.prototype || prototype === null;
@@ -19,6 +21,16 @@ function snapshotJsonValueInternal(
 		(typeof value === "number" && Number.isFinite(value))
 	) {
 		return value;
+	}
+	if (
+		ancestors.size >= MAX_JSON_NESTING_DEPTH &&
+		(Array.isArray(value) || (typeof value === "object" && isPlainObject(value)))
+	) {
+		throw new S11tnextError(
+			"S11TNEXT_VALUE_INVALID",
+			`JSON values may not exceed ${MAX_JSON_NESTING_DEPTH} nested containers`,
+			path,
+		);
 	}
 	if (Array.isArray(value)) {
 		if (ancestors.has(value)) {
@@ -82,10 +94,13 @@ function escapeJsonString(value: string): string {
 }
 
 export function escapeBoundaryCharacters(value: string): string {
-	return value.replace(/[<>&\u2028\u2029]/g, (character) => {
-		const code = character.codePointAt(0);
-		return `\\u${code?.toString(16).padStart(4, "0")}`;
-	});
+	return value.replace(
+		/[<>&\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u2028-\u202e\u2066-\u2069]/g,
+		(character) => {
+			const code = character.codePointAt(0);
+			return `\\u${code?.toString(16).padStart(4, "0")}`;
+		},
+	);
 }
 
 export function encodeValue(

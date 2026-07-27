@@ -7,6 +7,7 @@ Before submitting a change, run:
 ```sh
 pnpm install --frozen-lockfile
 pnpm verify
+pnpm test:examples
 pnpm test:schema-drift
 pnpm test:cross-node
 pnpm test:packages
@@ -14,4 +15,4 @@ pnpm test:packages
 
 `pnpm verify` enforces aggregate and critical-file coverage thresholds. Keep the runtime free of Node.js
 builtins, filesystem access, process state, and TOML parsing. Public contract changes must include
-fixtures and deterministic tests.
+fixtures, deterministic tests, a Changeset, and an intentionally reviewed `pnpm api:report` diff.

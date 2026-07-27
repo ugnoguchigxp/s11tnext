@@ -1,0 +1,13 @@
+source_dir = "contexts"
+out_dir = ".s11tnext"
+
+[authoring]
+source_locale = "en-US"
+
+[governance]
+require_owner = false
+
+[keyspaces]
+
+[release_profiles.development]
+required_locales = ["$source"]

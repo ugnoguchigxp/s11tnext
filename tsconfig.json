@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/runtime" },
     { "path": "./packages/cli" },
-    { "path": "./examples/node-basic" }
+    { "path": "./examples/node-basic" },
+    { "path": "./examples/minimal" }
   ]
 }

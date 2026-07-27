@@ -1,5 +1,5 @@
 {
-  "name": "s11tnext-example-node-basic",
+  "name": "s11tnext-example-minimal",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,8 +7,8 @@
     "node": "^20.19.0 || ^22.0.0 || ^24.0.0"
   },
   "scripts": {
-    "build": "s11tnext build --release-profile production && tsc -b --pretty false",
-    "check": "s11tnext build --check --release-profile production && tsc -b --pretty false",
+    "build": "s11tnext build --release-profile development && tsc -b --pretty false",
+    "check": "s11tnext build --check --release-profile development && tsc -b --pretty false",
     "start": "node dist/src/index.js"
   },
   "dependencies": {

@@ -25,6 +25,28 @@ function npmJson(arguments_) {
 	}
 }
 
+function registryMetadataError(metadata, entry) {
+	if (typeof metadata.dist?.integrity !== "string" || metadata.dist.integrity.length === 0) {
+		return `${entry.name}@${report.version} has no registry integrity`;
+	}
+	if (!Array.isArray(metadata.dist?.signatures) || metadata.dist.signatures.length === 0) {
+		return `${entry.name}@${report.version} has no registry signature`;
+	}
+	if (report.channel !== "stable") return null;
+	if (metadata.gitHead !== report.repository?.commit) {
+		return `${entry.name}@${report.version} gitHead does not match ${report.repository?.commit ?? "the release commit"}`;
+	}
+	if (
+		typeof metadata.dist?.attestations?.url !== "string" ||
+		metadata.dist.attestations.url.length === 0 ||
+		metadata.dist.attestations.provenance?.predicateType !==
+			"https://slsa.dev/provenance/v1"
+	) {
+		return `${entry.name}@${report.version} has no SLSA provenance attestation`;
+	}
+	return null;
+}
+
 if (
 	(report.channel !== "canary" && report.channel !== "stable") ||
 	(report.distTag !== "canary" && report.distTag !== "latest") ||
@@ -61,6 +83,28 @@ for (const entry of report.packages) {
 		if (lastError !== null) process.stderr.write(lastError);
 		throw new Error(`${entry.name} ${report.distTag} does not point to ${report.version}`);
 	}
+
+	let metadataVerified = false;
+	let metadataLastError = `Unable to verify registry metadata for ${entry.name}@${report.version}`;
+	for (let attempt = 1; attempt <= attempts; attempt += 1) {
+		const metadataResult = npmJson(["view", `${entry.name}@${report.version}`, "--json"]);
+		if (metadataResult.error !== null || metadataResult.value === null) {
+			metadataLastError = metadataResult.error ?? metadataLastError;
+		} else {
+			const validationError = registryMetadataError(metadataResult.value, entry);
+			if (validationError === null) {
+				metadataVerified = true;
+				break;
+			}
+			metadataLastError = validationError;
+		}
+		if (attempt < attempts) {
+			await new Promise((resolvePromise) => setTimeout(resolvePromise, retryDelayMilliseconds));
+		}
+	}
+	if (!metadataVerified) {
+		throw new Error(metadataLastError);
+	}
 }
 
-process.stdout.write(`Registry dist-tags verified for ${report.version}.\n`);
+process.stdout.write(`Registry identity, integrity, signatures, and dist-tags verified for ${report.version}.\n`);

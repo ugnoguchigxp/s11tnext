@@ -131,6 +131,10 @@ jobs:
         if: inputs.channel == 'stable'
         run: pnpm changeset publish --no-git-tag
       - run: node scripts/verify-registry-release.mjs
+      - name: Exercise the published packages
+        env:
+          S11TNEXT_REGISTRY_TAG: ${{ inputs.channel == 'canary' && 'canary' || inputs.channel == 'bootstrap' && 'canary' || 'latest' }}
+        run: pnpm test:registry-consumer
       - name: Verify registry signatures and provenance
         run: |
           mkdir -p .artifacts/registry-consumer

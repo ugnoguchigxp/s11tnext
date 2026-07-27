@@ -8,7 +8,9 @@ export type {
 	CatalogBindingResolver,
 	CatalogContract,
 	CompositionReceipt,
+	ContractKey,
 	ContractRoles,
+	ContractValues,
 	PromptDescription,
 	PromptInvocation,
 	RequestAudit,
@@ -19,6 +21,7 @@ export type {
 	TextRenderer,
 	TextRendererObject,
 } from "./catalog.js";
+export type { DefaultContract } from "./catalog-types.js";
 export {
 	hashPromptMessage,
 	hashRendered,
@@ -37,5 +40,11 @@ export type {
 	S11tnextCompiledLocale,
 	S11tnextCompiledSection,
 	S11tnextCompiledVariable,
+	S11tnextSectionKind,
+	S11tnextSectionSeverity,
+	S11tnextVariableEncoding,
+	S11tnextVariablePlacement,
+	S11tnextVariableTrust,
+	S11tnextVariableType,
 	TemplateSegment,
 } from "./types.js";

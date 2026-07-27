@@ -37,15 +37,21 @@ export const criticalCoverageRequirements = {
 	},
 	"packages/runtime/src/catalog.ts": {
 		statements: 80,
-		branches: 70,
+		branches: 80,
 		functions: 85,
 		lines: 80,
 	},
 	"packages/runtime/src/artifact-integrity.ts": {
 		statements: 80,
-		branches: 70,
+		branches: 80,
 		functions: 100,
 		lines: 80,
+	},
+	"packages/runtime/src/encoding.ts": {
+		statements: 85,
+		branches: 80,
+		functions: 85,
+		lines: 85,
 	},
 	"packages/runtime/src/catalog-rendering.ts": {
 		statements: 90,

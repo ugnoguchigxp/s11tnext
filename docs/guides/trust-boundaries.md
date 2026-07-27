@@ -71,3 +71,14 @@ identifiers, not signatures or proof of delivery.
 `bindText()` and `createTextRenderer()` deliberately discard that manifest. They are useful for
 non-audited text composition, but substituting them into a provider path silently loses the correlation
 data needed to explain which content was sent.
+
+## Pass plain data across the runtime boundary
+
+Runtime values must be ordinary data objects. Accessors are rejected, and JSON values are copied through
+property descriptors before encoding. JavaScript `Proxy` objects are not a safe trust boundary:
+reflection on a Proxy can execute user-defined traps before a library can reject it. Parse untrusted
+serialized input into plain JSON data before passing it to S11tnext, and do not accept Proxy objects from
+an untrusted in-process caller.
+
+JSON values deeper than 256 nested arrays or objects are rejected to keep untrusted input from exhausting
+the JavaScript call stack during validation and canonicalization.

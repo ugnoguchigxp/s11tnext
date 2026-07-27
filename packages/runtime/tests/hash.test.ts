@@ -10,6 +10,7 @@ import {
 	hashPromptMessage,
 	hashPolicy,
 	hashRelease,
+	hashRendered,
 	verifyPromptMessageHash,
 } from "../src/hash.js";
 import type { S11tnextCompiledSection } from "../src/types.js";
@@ -159,5 +160,16 @@ describe("hash contract", () => {
 		expect(
 			verifyPromptMessageHash({ role: value.role, text: `${value.text}!` }, digest),
 		).toBe(false);
+	});
+
+	it("keeps rendered text and provider-message hash domains distinct", () => {
+		const text = "same payload";
+
+		expect(hashRendered(text)).not.toBe(
+			hashPromptMessage({ role: "system", text }),
+		);
+		expect(hashPromptMessage({ role: "system", text })).not.toBe(
+			hashPromptMessage({ role: "user", text }),
+		);
 	});
 });

@@ -1,0 +1,49 @@
+{
+  "format": "s11tnext.catalog",
+  "artifactVersion": 2,
+  "compilerVersion": "0.1.2",
+  "releaseProfile": "development",
+  "policyDigest": "sha256:0be250bc08ad1f2be87c7954b336f174883e33ea2bb897d6b4c5cb9c77b45465",
+  "createdFrom": {
+    "configPath": "s11tnext.config.toml",
+    "sourceFiles": [
+      "contexts/greeting.context.toml"
+    ]
+  },
+  "contexts": {
+    "greeting": {
+      "key": "greeting",
+      "owner": "unowned",
+      "contentKind": "text",
+      "messageRole": "system",
+      "sourceLocale": "en-US",
+      "requiredLocales": [
+        "en-US"
+      ],
+      "variables": {},
+      "locales": {
+        "en-US": {
+          "sections": [
+            {
+              "id": "context.text",
+              "kind": "instruction",
+              "severity": "must",
+              "optimizable": false,
+              "omitIfEmpty": false,
+              "segments": [
+                {
+                  "type": "literal",
+                  "value": "You are a concise and helpful assistant."
+                }
+              ]
+            }
+          ],
+          "artifactHash": "sha256:0aa12e951858906c18a8a21a7fae4a9b6df30fec432f9d59e760ac40030dedcf"
+        }
+      },
+      "definitionHash": "sha256:9a6d2658986d7da5d3a51d8fc437d2d157c68fece311edbd2f7a1e500efc53d3",
+      "releaseDigest": "sha256:a17c006906d55869c112c437830e3f4003214afed9a959e260b737441b38b100"
+    }
+  },
+  "catalogDigest": "sha256:e594f4b83ceb1ccda711e308dab22444cb4ddfcda30a892f5d4dd2751519a71c"
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	assertCatalogIntegrity,
 	createCatalog,
 	hashPromptMessage,
 	hashRendered,
@@ -9,6 +10,7 @@ import {
 	verifyRenderedHash,
 } from "../src/index.js";
 import { compileCatalog, type CanonicalContextDefinition } from "../src/compiler.js";
+import { hashArtifact } from "../src/hash.js";
 
 function definition(): CanonicalContextDefinition {
 	return {
@@ -280,6 +282,103 @@ describe("catalog", () => {
 		input.contexts["codingAgent.role-instructions"]!.key = "missing.key";
 		expect(errorCode(() => createCatalog(input))).toBe("S11TNEXT_ARTIFACT_INVALID");
 	});
+
+	it("pins a generated factory to its expected catalog digest", () => {
+		const input = artifact();
+
+		expect(
+			createCatalog(input, { expectedCatalogDigest: input.catalogDigest }).catalogDigest,
+		).toBe(input.catalogDigest);
+		expect(
+			errorCode(() =>
+				createCatalog(input, {
+					expectedCatalogDigest: `sha256:${"0".repeat(64)}`,
+				}),
+			),
+		).toBe("S11TNEXT_ARTIFACT_DIGEST_MISMATCH");
+	});
+
+	it.each([
+		[
+			"a missing source locale",
+			(input: ReturnType<typeof artifact>) => {
+				input.contexts["codingAgent.role-instructions"]!.sourceLocale = "fr-FR";
+			},
+		],
+		[
+			"a missing required locale",
+			(input: ReturnType<typeof artifact>) => {
+				input.contexts["codingAgent.role-instructions"]!.requiredLocales.push("fr-FR");
+			},
+		],
+		[
+			"locale section metadata drift",
+			(input: ReturnType<typeof artifact>) => {
+				const context = input.contexts["codingAgent.role-instructions"]!;
+				const locale = context.locales["en-US"]!;
+				locale.sections[0]!.severity = "should";
+				locale.artifactHash = hashArtifact({
+					key: context.key,
+					locale: "en-US",
+					sections: locale.sections,
+				});
+			},
+		],
+		[
+			"an undeclared variable segment",
+			(input: ReturnType<typeof artifact>) => {
+				input.contexts["codingAgent.role-instructions"]!.locales[
+					"ja-JP"
+				]!.sections[0]!.segments.push({ type: "variable", name: "missing" });
+			},
+		],
+		[
+			"an unreferenced variable",
+			(input: ReturnType<typeof artifact>) => {
+				input.contexts["codingAgent.role-instructions"]!.variables.unused = {
+					required: true,
+					type: "string",
+					trust: "trusted",
+					placement: "inline",
+					encoding: "raw",
+				};
+			},
+		],
+	])("rejects %s before accepting artifact identity", (_label, mutate) => {
+		const input = artifact();
+		mutate(input);
+
+		expect(() => assertCatalogIntegrity(input)).toThrowError(
+			expect.objectContaining<S11tnextError>({
+				code: "S11TNEXT_ARTIFACT_INVALID",
+			}),
+		);
+	});
+
+	it.each(["definitionHash", "releaseDigest"] as const)(
+		"rejects a mismatched %s",
+		(field) => {
+			const input = artifact();
+			input.contexts["codingAgent.role-instructions"]![field] =
+				`sha256:${"0".repeat(64)}`;
+
+			expect(errorCode(() => assertCatalogIntegrity(input))).toBe(
+				"S11TNEXT_ARTIFACT_DIGEST_MISMATCH",
+			);
+		},
+	);
+
+	it.each(["policyDigest", "catalogDigest"] as const)(
+		"rejects a mismatched %s",
+		(field) => {
+			const input = artifact();
+			input[field] = `sha256:${"0".repeat(64)}`;
+
+			expect(errorCode(() => assertCatalogIntegrity(input))).toBe(
+				"S11TNEXT_ARTIFACT_DIGEST_MISMATCH",
+			);
+		},
+	);
 
 	it("rejects message role tampering through digest validation", () => {
 		const input = artifact();

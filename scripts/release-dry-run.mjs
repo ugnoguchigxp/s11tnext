@@ -179,6 +179,8 @@ execute(pnpm, ["verify"]);
 execute(pnpm, ["pack:all"]);
 execute(process.execPath, ["scripts/check-package-contents.mjs"]);
 execute(process.execPath, ["scripts/test-tarball-consumer.mjs"]);
+execute(process.execPath, ["scripts/check-package-contracts.mjs"]);
+execute(process.execPath, ["scripts/benchmark.mjs", "--check"]);
 execute(pnpm, ["audit", "--prod", "--audit-level", "high"]);
 
 const manifest = JSON.parse(readFileSync(resolve(artifactDirectory, "manifest.json"), "utf8"));

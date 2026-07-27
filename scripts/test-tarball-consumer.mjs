@@ -9,7 +9,18 @@ const { sync: spawnSync } = crossSpawn;
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fixtureRoot = resolve(repositoryRoot, "test-consumer/esm-node");
 const artifactDirectory = resolve(repositoryRoot, ".artifacts/packages");
-const manifest = JSON.parse(readFileSync(resolve(artifactDirectory, "manifest.json"), "utf8"));
+const arguments_ = process.argv.slice(2);
+if (arguments_.some((argument) => argument !== "--registry") || arguments_.length > 1) {
+	throw new Error("Usage: node scripts/test-tarball-consumer.mjs [--registry]");
+}
+const registryMode = arguments_[0] === "--registry";
+const registryTag = process.env.S11TNEXT_REGISTRY_TAG ?? "latest";
+if (registryMode && !/^[a-z][a-z0-9._-]*$/.test(registryTag)) {
+	throw new Error("S11TNEXT_REGISTRY_TAG must be a valid npm dist-tag");
+}
+const manifest = registryMode
+	? null
+	: JSON.parse(readFileSync(resolve(artifactDirectory, "manifest.json"), "utf8"));
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const node = process.execPath;
 const temporary = mkdtempSync(join(tmpdir(), "s11tnext-consumer-"));
@@ -30,20 +41,24 @@ function run(command, arguments_, options = {}) {
 }
 
 try {
-	if (!Array.isArray(manifest.packages) || manifest.packages.length !== 2) {
-		throw new Error("Package manifest is invalid");
-	}
 	cpSync(fixtureRoot, temporary, { recursive: true });
-	const packageDirectory = resolve(temporary, "packages");
-	mkdirSync(packageDirectory);
-	const installTargets = [];
-	for (const entry of manifest.packages) {
-		const source = resolve(artifactDirectory, entry.file);
-		const destination = resolve(packageDirectory, basename(entry.file));
-		cpSync(source, destination);
-		installTargets.push(`./packages/${basename(entry.file)}`);
+	const installTargets = [`s11tnext@${registryTag}`, `s11tnext-cli@${registryTag}`];
+	if (!registryMode) {
+		if (!Array.isArray(manifest?.packages) || manifest.packages.length !== 2) {
+			throw new Error("Package manifest is invalid");
+		}
+		const packageDirectory = resolve(temporary, "packages");
+		mkdirSync(packageDirectory);
+		installTargets.length = 0;
+		for (const entry of manifest.packages) {
+			const source = resolve(artifactDirectory, entry.file);
+			const destination = resolve(packageDirectory, basename(entry.file));
+			cpSync(source, destination);
+			installTargets.push(`./packages/${basename(entry.file)}`);
+		}
 	}
 	run(npm, ["install", "--ignore-scripts", "--no-audit", "--fund=false", ...installTargets]);
+	if (registryMode) run(npm, ["audit", "signatures"]);
 
 	const lockfile = readFileSync(resolve(temporary, "package-lock.json"), "utf8");
 	if (lockfile.includes("workspace:") || lockfile.includes(repositoryRoot)) {
@@ -58,7 +73,15 @@ try {
 	if (dependencyTree.dependencies?.["s11tnext-cli"] === undefined) {
 		throw new Error("Consumer did not install s11tnext-cli");
 	}
-	for (const entry of manifest.packages) {
+	const installedRuntimeVersion = dependencyTree.dependencies?.s11tnext?.version;
+	const installedCliVersion = dependencyTree.dependencies?.["s11tnext-cli"]?.version;
+	if (
+		typeof installedRuntimeVersion !== "string" ||
+		installedRuntimeVersion !== installedCliVersion
+	) {
+		throw new Error("Consumer installed mismatched runtime and CLI versions");
+	}
+	for (const entry of manifest?.packages ?? []) {
 		if (dependencyTree.dependencies?.[entry.name]?.version !== entry.version) {
 			throw new Error(
 				`Consumer installed ${entry.name}@${dependencyTree.dependencies?.[entry.name]?.version ?? "missing"}; expected ${entry.version}`,
@@ -109,7 +132,9 @@ try {
 	) {
 		throw new Error("Consumer did not retain the request audit");
 	}
-	const expectedVersion = manifest.packages[0]?.version;
+	const expectedVersion = registryMode
+		? installedRuntimeVersion
+		: manifest?.packages[0]?.version;
 	if (invocation.manifest?.compilerVersion !== expectedVersion) {
 		throw new Error(
 			`Consumer compiler version ${invocation.manifest?.compilerVersion} does not match ${expectedVersion}`,
@@ -121,7 +146,9 @@ try {
 	if (result.segments?.[0]?.type !== "variable" || result.segments[0].name !== "value") {
 		throw new Error("Compiler subpath did not expose tokenizeTemplate");
 	}
-	process.stdout.write(`Isolated ESM consumer passed for ${expectedVersion}.\n`);
+	process.stdout.write(
+		`${registryMode ? "Registry" : "Tarball"} ESM consumer passed for ${expectedVersion}.\n`,
+	);
 } finally {
 	if (process.env.S11TNEXT_KEEP_CONSUMER_TMP === "1") {
 		process.stdout.write(`Consumer workspace retained at ${temporary}.\n`);

@@ -1,5 +1,8 @@
 # S11tnext
 
+[![CI](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/ci.yml)
+[![Registry Consumer](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/registry-consumer.yml/badge.svg)](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/registry-consumer.yml)
+
 Keep natural-language LLM prompt messages out of your application logic.
 
 TypeScript向けの、バックエンドファーストなLLMプロンプトメッセージ作成・多言語化・コンパイル・実行時レンダリング基盤です。
@@ -32,6 +35,13 @@ s11tnext-cli ── 検証・コンパイル ──▶ catalog.json + catalog.ge
 ```
 
 S11tnextは、UI文言の翻訳ライブラリではありません。バックエンドからLLMへ渡すsystem/userプロンプトメッセージを、型、安全性、ロケール、所有者、変更監査の観点から管理することに特化しています。
+
+| 方法 | 型付きキー | 多言語 | 決定的生成物 | リクエスト監査 | ローカル完結 |
+| --- | --- | --- | --- | --- | --- |
+| コード内template literal | 手動 | 手動 | 手動 | なし | はい |
+| 一般的なi18n | はい | はい | 実装依存 | 通常なし | はい |
+| SaaS prompt管理 | 製品依存 | 製品依存 | 製品依存 | 製品依存 | 通常いいえ |
+| S11tnext | はい | はい | はい | はい | はい |
 
 ### 主な特徴
 
@@ -70,6 +80,10 @@ pnpm add --save-dev s11tnext-cli
 ```
 
 ### クイックスタート
+
+まず1言語・変数なしで動作を確認する場合は、[Minimalサンプル](./examples/minimal)と
+[3段階の導入ガイド](./docs/guides/adoption-paths.md)を使用してください。以下はuntrusted値と
+翻訳を含むProduction向けの開始例です。
 
 #### 1. 設定ファイルを作る
 
@@ -239,6 +253,7 @@ S11tnextはプロンプトインジェクション対策の一部を支援しま
 ### ドキュメントとサンプル
 
 - [Getting started](./docs/guides/getting-started.md)
+- [3段階の導入ガイド](./docs/guides/adoption-paths.md)
 - [Backend integration](./docs/guides/backend-integration.md)
 - [Trust boundaries](./docs/guides/trust-boundaries.md)
 - [Troubleshooting](./docs/guides/troubleshooting.md)
@@ -246,7 +261,9 @@ S11tnextはプロンプトインジェクション対策の一部を支援しま
 - [Artifact仕様](./docs/specification/artifact.md)
 - [互換性ポリシー](./docs/specification/compatibility.md)
 - [診断コード](./docs/specification/diagnostics.md)
+- [性能とサイズ予算](./docs/performance.md)
 - [Node.jsサンプル](./examples/node-basic)
+- [Minimalサンプル](./examples/minimal)
 - [npm公開手順](./docs/release/npm-publishing.md)
 
 ### このリポジトリで開発する
@@ -269,22 +286,23 @@ pnpm test:packages
 | `packages/cli` | npmパッケージ`s11tnext-cli`と`s11tnext`コマンド |
 | `schemas` | 公開JSON Schema |
 | `docs` | ガイド、仕様、リリース手順 |
-| `examples/node-basic` | 最小のNode.js統合例 |
+| `examples/minimal` | 1言語・変数なしの最小例 |
+| `examples/node-basic` | 多言語・監査を含むNode.js統合例 |
 | `test-consumer` | 公開tarballと型定義のconsumerテスト |
 
 ### 公開
 
-RuntimeとCLIは、ルートから1コマンドでnpmへ公開できます。versionは環境変数ではなく、両パッケージのpackage.jsonから取得されます。
+正式なstable公開は、provenance、annotated tag、GitHub Releaseまで一体で検証するRelease Workflowから行います。versionは環境変数ではなく、両パッケージのpackage.jsonから取得されます。
 
 ```sh
 # 対象、version、公開順、検証内容を確認
 pnpm release:publish:plan
 
-# 事前検証後、確認プロンプトを表示してstable公開
+# レジストリ障害時の緊急修復のみ
 pnpm release:publish
 ```
 
-`release:publish`は、Gitがクリーンであること、npm認証、総合テスト、tarball内容、隔離consumer、依存監査、`npm publish --dry-run`を確認します。すべて成功した後、package.jsonのversion入力を求め、`s11tnext`、`s11tnext-cli`の順で公開してレジストリを検証します。CIなど対話入力できない環境では、planを確認してから`pnpm release:publish -- --yes`を使用できます。
+`release:publish`はprovenance、Git tag、GitHub Releaseを完成させないため、通常のstable公開には使用しません。承認済みのレジストリ修復時だけ、planを確認して使用します。
 
 provenance付きのGitHub Actions公開が必要な場合は、`release:dispatch:bootstrap`、`release:dispatch:canary`、`release:dispatch:stable`を使用します。詳しい前提条件は[npm公開手順](./docs/release/npm-publishing.md)を参照してください。
 
@@ -318,6 +336,13 @@ s11tnext-cli ── validate and compile ──▶ catalog.json + catalog.genera
 ```
 
 S11tnext is not a UI string translation library. It is designed specifically for backend system/user prompt messages sent to LLMs, with explicit contracts for types, safety, locale policy, ownership, and change auditing.
+
+| Approach | Typed keys | Locales | Deterministic artifact | Request audit | Local-only |
+| --- | --- | --- | --- | --- | --- |
+| Inline template literal | Manual | Manual | Manual | No | Yes |
+| General i18n | Yes | Yes | Implementation-specific | Usually no | Yes |
+| SaaS prompt management | Product-specific | Product-specific | Product-specific | Product-specific | Usually no |
+| S11tnext | Yes | Yes | Yes | Yes | Yes |
 
 ### Highlights
 
@@ -356,6 +381,10 @@ pnpm add --save-dev s11tnext-cli
 ```
 
 ### Quick start
+
+For a first run with one locale and no variables, use the [Minimal example](./examples/minimal) and
+[three-stage adoption guide](./docs/guides/adoption-paths.md). The following is a Production-oriented
+starting point with an untrusted value and a translation.
 
 #### 1. Create the configuration
 
@@ -525,6 +554,7 @@ S11tnext supports one layer of prompt-injection defense, but it does not secure 
 ### Documentation and examples
 
 - [Getting started](./docs/guides/getting-started.md)
+- [Three-stage adoption guide](./docs/guides/adoption-paths.md)
 - [Backend integration](./docs/guides/backend-integration.md)
 - [Trust boundaries](./docs/guides/trust-boundaries.md)
 - [Troubleshooting](./docs/guides/troubleshooting.md)
@@ -532,7 +562,9 @@ S11tnext supports one layer of prompt-injection defense, but it does not secure 
 - [Artifact specification](./docs/specification/artifact.md)
 - [Compatibility policy](./docs/specification/compatibility.md)
 - [Diagnostic codes](./docs/specification/diagnostics.md)
+- [Performance and size budgets](./docs/performance.md)
 - [Node.js example](./examples/node-basic)
+- [Minimal example](./examples/minimal)
 - [npm publishing runbook](./docs/release/npm-publishing.md)
 
 ### Developing this repository
@@ -555,22 +587,23 @@ Main directories:
 | `packages/cli` | The `s11tnext-cli` npm package and `s11tnext` command |
 | `schemas` | Public JSON Schemas |
 | `docs` | Guides, specifications, and release procedures |
-| `examples/node-basic` | Minimal Node.js integration |
+| `examples/minimal` | One-locale, no-variable minimal example |
+| `examples/node-basic` | Node.js integration with locales and auditing |
 | `test-consumer` | Consumer tests for published tarballs and types |
 
 ### Publishing
 
-Runtime and CLI can be published to npm from the repository root with one command. The version comes from both package.json files, not an environment variable.
+Normal stable releases use the Release workflow so provenance, the annotated tag, and the GitHub Release are verified together. The version comes from both package.json files, not an environment variable.
 
 ```sh
 # Review targets, version, order, and verification
 pnpm release:publish:plan
 
-# Run preflight, ask for confirmation, and publish stable
+# Emergency registry repair only
 pnpm release:publish
 ```
 
-`release:publish` verifies a clean Git state, npm authentication, the full test suite, tarball contents, an isolated consumer, dependency audit, and `npm publish --dry-run`. After every check passes, it asks for the package.json version, publishes `s11tnext` followed by `s11tnext-cli`, and verifies the registry. For a non-interactive environment, review the plan first and use `pnpm release:publish -- --yes`.
+`release:publish` does not complete provenance, the Git tag, or the GitHub Release and is not the normal stable path. Use it only for an approved registry repair after reviewing the plan.
 
 For GitHub Actions publication with provenance, use `release:dispatch:bootstrap`, `release:dispatch:canary`, or `release:dispatch:stable`. See the [npm publishing runbook](./docs/release/npm-publishing.md) for all prerequisites.
 
