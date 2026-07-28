@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/ci.yml)
 [![Registry Consumer](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/registry-consumer.yml/badge.svg)](https://github.com/ugnoguchigxp/s11tnext/actions/workflows/registry-consumer.yml)
+[![npm version](https://img.shields.io/npm/v/s11tnext.svg)](https://www.npmjs.com/package/s11tnext)
 
 Keep natural-language LLM prompt messages out of your application logic.
 
@@ -65,14 +66,19 @@ S11tnextは、UI文言の翻訳ライブラリではありません。バック�
 
 ### インストール
 
-RuntimeとCLIをそれぞれインストールします。
+このガイドではnpmを標準のパッケージマネージャーとして使用します。まずRuntimeを通常の依存関係としてインストールします。
 
 ```sh
 npm install s11tnext
+```
+
+TOMLの検証・コンパイルに使うCLIは、開発依存関係としてインストールします。
+
+```sh
 npm install --save-dev s11tnext-cli
 ```
 
-pnpmの場合:
+pnpmを選択しているプロジェクトでは、上記のnpmコマンドを次の代替コマンドに置き換えられます。
 
 ```sh
 pnpm add s11tnext
@@ -366,14 +372,19 @@ S11tnext is currently in `0.x` pre-release development. The `s11tnext` Runtime a
 
 ### Installation
 
-Install the Runtime and CLI separately:
+This guide uses npm as its default package manager. First, install the Runtime as a regular dependency:
 
 ```sh
 npm install s11tnext
+```
+
+Install the CLI used to validate and compile TOML as a development dependency:
+
+```sh
 npm install --save-dev s11tnext-cli
 ```
 
-With pnpm:
+If the project has chosen pnpm, replace the npm commands above with these alternatives:
 
 ```sh
 pnpm add s11tnext
