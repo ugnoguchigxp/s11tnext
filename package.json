@@ -36,7 +36,7 @@
     "test:examples": "pnpm --filter s11tnext-example-minimal check && pnpm --filter s11tnext-example-node-basic check",
     "check:versions": "node scripts/sync-package-versions.mjs --check",
     "changeset": "changeset",
-    "version-packages": "changeset version && node scripts/sync-package-versions.mjs && pnpm install --lockfile-only && pnpm --filter s11tnext build && pnpm --filter s11tnext-cli build && pnpm examples:update",
+    "version-packages": "changeset version && node scripts/sync-package-versions.mjs && pnpm install --lockfile-only && pnpm api:report && pnpm examples:update",
     "version:canary": "changeset version --snapshot canary && node scripts/sync-package-versions.mjs && pnpm install --lockfile-only",
     "pack:all": "node scripts/pack-all.mjs",
     "test:package-contents": "node scripts/check-package-contents.mjs",
