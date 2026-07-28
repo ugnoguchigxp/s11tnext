@@ -1,5 +1,15 @@
 # s11tnext
 
+## 0.1.3
+
+### Patch Changes
+
+- 020c0d3: Escape invisible C0/C1 control and bidirectional-override characters in delimited runtime values, and
+  reject JSON values deeper than 256 containers with a stable diagnostic. Add required CI aggregation,
+  recurring registry-consumer validation, stable-release provenance checks, package metadata and public
+  API reports, generated-example freshness checks, stronger branch coverage gates, a minimal adoption
+  path, and performance size budgets.
+
 ## 0.1.2
 
 ### Patch Changes
