@@ -1,7 +1,7 @@
 {
   "format": "s11tnext.catalog",
   "artifactVersion": 2,
-  "compilerVersion": "0.1.2",
+  "compilerVersion": "0.1.3",
   "releaseProfile": "production",
   "policyDigest": "sha256:0089bb95abe774bb6a20a07e42702f06547a88052f2cf5221ce960338c01211e",
   "createdFrom": {
@@ -111,8 +111,8 @@
         }
       },
       "definitionHash": "sha256:f55ff593718e7cbe61b54fd2859183bcfa485a4237fc82a8f642ba960234c1c4",
-      "releaseDigest": "sha256:6adc81099a370bdff58e3224ca8d654166f1fc1821f592d492a2ec47ad637337"
+      "releaseDigest": "sha256:96d6fc44ca1b3c81e7b01cff4c8b3919fd9c62f6a1541dd610af67f77e0dbf89"
     }
   },
-  "catalogDigest": "sha256:60f4a573314250e1da897d39af7580597df5a692a25ea261d9e2713a059e843c"
+  "catalogDigest": "sha256:e8e8a8c839567f7e9fd4ce85f868c6ea45925efb088d24cacb8d98132eb5da88"
 }
