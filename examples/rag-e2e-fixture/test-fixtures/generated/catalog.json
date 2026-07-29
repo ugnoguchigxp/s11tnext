@@ -1,0 +1,117 @@
+{
+  "format": "s11tnext.catalog",
+  "artifactVersion": 2,
+  "compilerVersion": "0.1.2",
+  "releaseProfile": "e2e",
+  "policyDigest": "sha256:3a1f80f1048f1102e2d8981c536e1c1c52919b4030af2e434ea9fcf43b76ffcb",
+  "createdFrom": {
+    "configPath": "s11tnext.config.toml",
+    "sourceFiles": [
+      "contexts/llmFixture/empty-citations.context.toml",
+      "contexts/llmFixture/grounded-answer.context.toml",
+      "contexts/llmFixture/unsupported-citation.context.toml"
+    ]
+  },
+  "contexts": {
+    "llmFixture.empty-citations": {
+      "key": "llmFixture.empty-citations",
+      "owner": "rag-e2e-fixture",
+      "contentKind": "text",
+      "messageRole": "system",
+      "sourceLocale": "ja-JP",
+      "requiredLocales": [
+        "ja-JP"
+      ],
+      "variables": {},
+      "locales": {
+        "ja-JP": {
+          "sections": [
+            {
+              "id": "context.text",
+              "kind": "instruction",
+              "severity": "must",
+              "optimizable": false,
+              "omitIfEmpty": false,
+              "segments": [
+                {
+                  "type": "literal",
+                  "value": "{\"answer\":\"引用のない回答です。\",\"citations\":[]}"
+                }
+              ]
+            }
+          ],
+          "artifactHash": "sha256:958b8bb463905f99ea81e301b9b744e854f44d9e5e40661cc5182d8e790c9511"
+        }
+      },
+      "definitionHash": "sha256:9bb54e1f53f0458425be1a4ed06f6e04ad02a3a79bf3016d0e20db8cddfb3e45",
+      "releaseDigest": "sha256:8152ae2357f45ed426195e0cf77dd9190125ebb33444b90f6e2744cda8f04dbe"
+    },
+    "llmFixture.grounded-answer": {
+      "key": "llmFixture.grounded-answer",
+      "owner": "rag-e2e-fixture",
+      "contentKind": "text",
+      "messageRole": "system",
+      "sourceLocale": "ja-JP",
+      "requiredLocales": [
+        "ja-JP"
+      ],
+      "variables": {},
+      "locales": {
+        "ja-JP": {
+          "sections": [
+            {
+              "id": "context.text",
+              "kind": "instruction",
+              "severity": "must",
+              "optimizable": false,
+              "omitIfEmpty": false,
+              "segments": [
+                {
+                  "type": "literal",
+                  "value": "{\"answer\":\"S11tnextは、LLMプロンプトをアプリケーションコードから分離してTOMLで管理し、決定的なJSONと型付きTypeScriptへコンパイルします。\",\"citations\":[\"s11tnext-overview\"]}"
+                }
+              ]
+            }
+          ],
+          "artifactHash": "sha256:1214c55aaa76641d64d6378b8877d896cb752cbe42b0786bc7e35a2cda7f02a5"
+        }
+      },
+      "definitionHash": "sha256:bb016aaa5c47868bac8ced0d82c4a38df0cf7cf9f9bd9b4f7d983321913be231",
+      "releaseDigest": "sha256:fcbbca8d9b4e2a5d2e3bccb6406cb89df23b21d0170cdcc206027968be295dfa"
+    },
+    "llmFixture.unsupported-citation": {
+      "key": "llmFixture.unsupported-citation",
+      "owner": "rag-e2e-fixture",
+      "contentKind": "text",
+      "messageRole": "system",
+      "sourceLocale": "ja-JP",
+      "requiredLocales": [
+        "ja-JP"
+      ],
+      "variables": {},
+      "locales": {
+        "ja-JP": {
+          "sections": [
+            {
+              "id": "context.text",
+              "kind": "instruction",
+              "severity": "must",
+              "optimizable": false,
+              "omitIfEmpty": false,
+              "segments": [
+                {
+                  "type": "literal",
+                  "value": "{\"answer\":\"S11tnextはプロンプトを管理します。\",\"citations\":[\"unretrieved-document\"]}"
+                }
+              ]
+            }
+          ],
+          "artifactHash": "sha256:3f82ebd6cd4b5ba15a845097b709cea300b0cfbe51297de3190abc4a9b615de3"
+        }
+      },
+      "definitionHash": "sha256:65c9c1aee2ed605caa9e857383bfe02d2cc12fbeaf2c421a66cafa24ddbb4e44",
+      "releaseDigest": "sha256:350f045dc4b5b8946b1cf0de07281a381fea7d1a05c7b942e292ec38488b9ac0"
+    }
+  },
+  "catalogDigest": "sha256:8ff5dca51292268d4afbac03f2341ad87c39f1bf42bbeefa3516f3aa4a2bca2e"
+}

@@ -1,0 +1,14 @@
+source_dir = "contexts"
+out_dir = "generated"
+
+[authoring]
+source_locale = "ja-JP"
+
+[governance]
+require_owner = true
+
+[keyspaces.llmFixture]
+owner = "rag-e2e-fixture"
+
+[release_profiles.e2e]
+required_locales = ["$source"]

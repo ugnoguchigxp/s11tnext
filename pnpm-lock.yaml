@@ -71,6 +71,19 @@ importers:
         specifier: workspace:*
         version: link:../../packages/cli
 
+  examples/rag-e2e-fixture:
+    dependencies:
+      s11tnext:
+        specifier: workspace:*
+        version: link:../../packages/runtime
+    devDependencies:
+      s11tnext-cli:
+        specifier: workspace:*
+        version: link:../../packages/cli
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1))
+
   packages/cli:
     dependencies:
       s11tnext:

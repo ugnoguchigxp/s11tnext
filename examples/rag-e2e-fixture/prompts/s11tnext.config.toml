@@ -1,0 +1,26 @@
+source_dir = "contexts"
+out_dir = "generated"
+
+[authoring]
+source_locale = "ja-JP"
+
+[governance]
+require_owner = true
+
+[keyspaces.rag]
+owner = "rag-example"
+
+[release_profiles.example]
+required_locales = ["$source"]
+
+[variable_profiles."untrusted.text"]
+type = "string"
+trust = "untrusted"
+placement = "delimited-context"
+encoding = "delimited-text"
+
+[variable_profiles."untrusted.json"]
+type = "json"
+trust = "untrusted"
+placement = "delimited-context"
+encoding = "json-value"

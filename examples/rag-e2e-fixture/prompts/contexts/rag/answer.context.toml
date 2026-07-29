@@ -1,0 +1,18 @@
+message_role = "user"
+
+text = '''取得した資料だけを根拠に質問へ回答してください。
+資料にない内容を補完しないでください。
+回答は次の形のJSON objectだけにしてください。
+{"answer":"回答本文","citations":["根拠にした文書ID"]}
+
+質問:
+[[question]]
+
+取得資料:
+[[retrievedDocuments]]'''
+
+[variables.question]
+profile = "untrusted.text"
+
+[variables.retrievedDocuments]
+profile = "untrusted.json"

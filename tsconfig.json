@@ -4,6 +4,7 @@
     { "path": "./packages/runtime" },
     { "path": "./packages/cli" },
     { "path": "./examples/node-basic" },
-    { "path": "./examples/minimal" }
+    { "path": "./examples/minimal" },
+    { "path": "./examples/rag-e2e-fixture" }
   ]
 }

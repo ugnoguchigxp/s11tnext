@@ -1,0 +1,24 @@
+{
+  "name": "s11tnext-example-rag-e2e-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || ^22.0.0 || ^24.0.0"
+  },
+  "scripts": {
+    "catalogs:build": "s11tnext build --config prompts/s11tnext.config.toml --release-profile example && s11tnext build --config test-fixtures/s11tnext.config.toml --release-profile e2e",
+    "catalogs:check": "s11tnext build --check --config prompts/s11tnext.config.toml --release-profile example && s11tnext build --check --config test-fixtures/s11tnext.config.toml --release-profile e2e",
+    "build": "pnpm catalogs:build && tsc -b --pretty false",
+    "test": "vitest run tests/rag.e2e.test.ts",
+    "check": "pnpm catalogs:check && tsc -b --pretty false && vitest run tests/rag.e2e.test.ts",
+    "start": "node dist/test-fixtures/demo.js"
+  },
+  "dependencies": {
+    "s11tnext": "workspace:*"
+  },
+  "devDependencies": {
+    "s11tnext-cli": "workspace:*",
+    "vitest": "4.1.10"
+  }
+}

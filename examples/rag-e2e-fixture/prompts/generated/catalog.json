@@ -1,0 +1,76 @@
+{
+  "format": "s11tnext.catalog",
+  "artifactVersion": 2,
+  "compilerVersion": "0.1.2",
+  "releaseProfile": "example",
+  "policyDigest": "sha256:6af14955a71be1ea90d13f3b6769e793c15f3273eaa314302b1104a338e6032d",
+  "createdFrom": {
+    "configPath": "s11tnext.config.toml",
+    "sourceFiles": [
+      "contexts/rag/answer.context.toml"
+    ]
+  },
+  "contexts": {
+    "rag.answer": {
+      "key": "rag.answer",
+      "owner": "rag-example",
+      "contentKind": "text",
+      "messageRole": "user",
+      "sourceLocale": "ja-JP",
+      "requiredLocales": [
+        "ja-JP"
+      ],
+      "variables": {
+        "question": {
+          "required": true,
+          "type": "string",
+          "trust": "untrusted",
+          "placement": "delimited-context",
+          "encoding": "delimited-text"
+        },
+        "retrievedDocuments": {
+          "required": true,
+          "type": "json",
+          "trust": "untrusted",
+          "placement": "delimited-context",
+          "encoding": "json-value"
+        }
+      },
+      "locales": {
+        "ja-JP": {
+          "sections": [
+            {
+              "id": "context.text",
+              "kind": "instruction",
+              "severity": "must",
+              "optimizable": false,
+              "omitIfEmpty": false,
+              "segments": [
+                {
+                  "type": "literal",
+                  "value": "取得した資料だけを根拠に質問へ回答してください。\n資料にない内容を補完しないでください。\n回答は次の形のJSON objectだけにしてください。\n{\"answer\":\"回答本文\",\"citations\":[\"根拠にした文書ID\"]}\n\n質問:\n"
+                },
+                {
+                  "type": "variable",
+                  "name": "question"
+                },
+                {
+                  "type": "literal",
+                  "value": "\n\n取得資料:\n"
+                },
+                {
+                  "type": "variable",
+                  "name": "retrievedDocuments"
+                }
+              ]
+            }
+          ],
+          "artifactHash": "sha256:d5e1e60f4d0db3e593266a18c1a47d0aecf2be8cf5e02b2ac544a1e7909dd019"
+        }
+      },
+      "definitionHash": "sha256:62818e9a8abd7f2b46443d7fee4df137054a9fc5b78a9ba710911e7cab7782df",
+      "releaseDigest": "sha256:93983e4569ba94a9025379bb1acb2f46dee9bed15851c1883e9bc2d6cb4af84f"
+    }
+  },
+  "catalogDigest": "sha256:02ce176f79085fcb982b9c3ab10469dcc7a3df3675f138c06c3df8b7112a98c5"
+}

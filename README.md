@@ -270,6 +270,7 @@ S11tnextはプロンプトインジェクション対策の一部を支援しま
 - [性能とサイズ予算](./docs/performance.md)
 - [Node.jsサンプル](./examples/node-basic)
 - [Minimalサンプル](./examples/minimal)
+- [RAG E2E fixtureサンプル](./examples/rag-e2e-fixture)
 - [npm公開手順](./docs/release/npm-publishing.md)
 
 ### このリポジトリで開発する
@@ -294,6 +295,7 @@ pnpm test:packages
 | `docs` | ガイド、仕様、リリース手順 |
 | `examples/minimal` | 1言語・変数なしの最小例 |
 | `examples/node-basic` | 多言語・監査を含むNode.js統合例 |
+| `examples/rag-e2e-fixture` | 固定LLM応答を使う決定的なRAG E2E例 |
 | `test-consumer` | 公開tarballと型定義のconsumerテスト |
 
 ### 公開
@@ -576,6 +578,7 @@ S11tnext supports one layer of prompt-injection defense, but it does not secure 
 - [Performance and size budgets](./docs/performance.md)
 - [Node.js example](./examples/node-basic)
 - [Minimal example](./examples/minimal)
+- [RAG E2E fixture example](./examples/rag-e2e-fixture)
 - [npm publishing runbook](./docs/release/npm-publishing.md)
 
 ### Developing this repository
@@ -600,6 +603,7 @@ Main directories:
 | `docs` | Guides, specifications, and release procedures |
 | `examples/minimal` | One-locale, no-variable minimal example |
 | `examples/node-basic` | Node.js integration with locales and auditing |
+| `examples/rag-e2e-fixture` | Deterministic RAG E2E flow with fixed LLM responses |
 | `test-consumer` | Consumer tests for published tarballs and types |
 
 ### Publishing
