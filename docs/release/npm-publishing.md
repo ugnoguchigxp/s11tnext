@@ -11,6 +11,9 @@ does not authorize a publish; every registry-changing step below is a maintainer
 - `stable` is a normal SemVer version from the version PR and must publish from the exact `main` head.
 - The supported stable release path is `.github/workflows/release.yml`. It is the only path that
   completes provenance, immutable tag, and GitHub Release verification.
+- The release workflow explicitly dispatches CI for the generated `changeset-release/main` head.
+  Pull requests updated with the workflow token do not otherwise start a second workflow run, and
+  the protected branch requires the resulting `required` check before merge.
 - `pnpm release:publish` remains an emergency registry-repair tool; it does not complete the stable
   release contract by itself.
 - GitHub Actions stable publishing remains disabled until the repository variable
