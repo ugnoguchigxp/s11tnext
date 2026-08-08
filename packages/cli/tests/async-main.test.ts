@@ -1,7 +1,7 @@
 import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-
+import { COMPILER_VERSION } from "s11tnext/compiler";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CommandIo } from "../src/main.js";
@@ -61,7 +61,7 @@ describe("asynchronous CLI entry point", () => {
 		const directory = temporaryDirectory();
 		const output = capture(directory);
 		expect(await runCliAsync(["version"], output.io)).toBe(0);
-		expect(output.stdout()).toMatch(/^\d+\.\d+\.\d+\n$/);
+		expect(output.stdout()).toBe(`${COMPILER_VERSION}\n`);
 		expect(watchProject).not.toHaveBeenCalled();
 
 		const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
