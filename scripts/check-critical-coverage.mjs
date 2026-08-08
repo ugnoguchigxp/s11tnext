@@ -5,6 +5,12 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 export const criticalCoverageRequirements = {
+	"packages/cli/src/async-main.ts": {
+		statements: 85,
+		branches: 80,
+		functions: 90,
+		lines: 85,
+	},
 	"packages/cli/src/authoring.ts": {
 		statements: 80,
 		branches: 75,
