@@ -50,11 +50,27 @@ jobs:
           commit: Version packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Trigger CI for the release PR head
+      - name: Approve CI for the release PR head
         if: steps.changesets.outputs.hasChangesets == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run ci.yml --ref changeset-release/main
+        run: |
+          VERSION_HEAD="$(gh pr view changeset-release/main --json headRefOid --jq .headRefOid)"
+          for _ in {1..12}; do
+            RUN="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$VERSION_HEAD&per_page=1" --jq '.workflow_runs[0] | "\(.id) \(.status) \(.conclusion // \"-\")"')"
+            if [ -n "$RUN" ]; then
+              read -r RUN_ID RUN_STATUS RUN_CONCLUSION <<< "$RUN"
+              if [ "$RUN_CONCLUSION" = "action_required" ]; then
+                gh api --method POST "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/approve"
+              else
+                echo "CI run $RUN_ID is already $RUN_STATUS ($RUN_CONCLUSION)."
+              fi
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Timed out waiting for CI on release PR head $VERSION_HEAD." >&2
+          exit 1
 
   publish:
     if: >-
