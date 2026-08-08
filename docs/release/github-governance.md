@@ -6,7 +6,7 @@ maintainers must audit them after repository creation, ownership changes, and be
 ## Required `main` rules
 
 - Require a pull request before merging.
-- Require the aggregate status check named `CI / required`, bind it to the GitHub Actions app, and
+- Require the aggregate check-run named `required`, bind it to the GitHub Actions app, and
   require branches to be up to date.
 - Require conversation resolution.
 - Block force pushes and deletion.
@@ -22,11 +22,14 @@ manual audit command is read-only:
 
 ```sh
 pnpm governance:audit
+pnpm governance:audit:stable
 ```
 
-It checks branch protection or rulesets plus private vulnerability reporting through GitHub CLI. An
-authenticated repository administrator must separately verify required reviewers on `npm-stable`, npm
-trusted publishers for both packages, and `S11TNEXT_STABLE_RELEASE_ENABLED` before dispatch.
+The first command checks branch protection or rulesets plus private vulnerability reporting through
+GitHub CLI. The stable audit additionally requires `npm-stable` to block administrator bypass, have a
+required reviewer, accept protected branches only, and keep `S11TNEXT_STABLE_RELEASE_ENABLED` disabled.
+Immediately before an approved stable dispatch, set that variable to `true` and run
+`pnpm governance:audit:stable-ready`. npm trusted publishers for both packages remain an npm-side check.
 
 ## Release traceability
 

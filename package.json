@@ -55,6 +55,10 @@
     "release:dispatch:canary": "node scripts/dispatch-release.mjs canary",
     "release:dispatch:stable": "node scripts/dispatch-release.mjs stable",
     "governance:audit": "node scripts/audit-github-governance.mjs",
+    "governance:audit:stable": "node scripts/audit-github-governance.mjs --stable",
+    "governance:audit:stable-ready": "node scripts/audit-github-governance.mjs --stable --release-ready",
+    "governance:plan:npm-trust": "npx --yes npm@11.19.0 trust github s11tnext --file release.yml --repo ugnoguchigxp/s11tnext --allow-publish --dry-run --json && npx --yes npm@11.19.0 trust github s11tnext-cli --file release.yml --repo ugnoguchigxp/s11tnext --allow-publish --dry-run --json",
+    "governance:audit:npm-trust": "npx --yes npm@11.19.0 trust list s11tnext --json && npx --yes npm@11.19.0 trust list s11tnext-cli --json",
     "deploy:nightworkers-canary": "node scripts/deploy-nightworkers-canary.mjs",
     "verify": "pnpm format:check && pnpm check:versions && pnpm typecheck && pnpm build && pnpm test:coverage && pnpm test:type-fixtures && pnpm test:no-node-builtins && pnpm test:browser-bundle && pnpm exec s11tnext --help",
     "verify:repository": "pnpm verify && pnpm test:examples && pnpm test:schema-drift && pnpm test:cross-node && pnpm test:packages && pnpm benchmark:check"

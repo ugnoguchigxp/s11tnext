@@ -9,7 +9,7 @@ The project currently has one maintainer:
 | `@ugnoguchigxp` | Repository administration, releases, security coordination, runtime and CLI |
 
 This is a material continuity risk, not a two-person governance claim. `CODEOWNERS` records current
-ownership so review routing is explicit. Branch protection must require the aggregate `CI / required`
+ownership so review routing is explicit. Branch protection must require the aggregate `required` check-run
 check and a pull request, but a two-approval rule must not be enabled until at least two active,
 independent maintainers exist.
 

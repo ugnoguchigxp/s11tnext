@@ -28,7 +28,7 @@ Before any dispatch:
 1. Confirm the maintainer owns the unscoped `s11tnext` and `s11tnext-cli` package names and both are intended
    to be public.
 2. Enable 2FA on every npm maintainer account.
-3. Protect `main` and require the aggregate `CI / required` check.
+3. Protect `main` and require the aggregate `required` check-run.
 4. Enable GitHub private vulnerability reporting and verify the link in `SECURITY.md`.
 5. Create GitHub environments:
    - `npm-bootstrap`: required reviewer; used once.
@@ -36,6 +36,7 @@ Before any dispatch:
    - `npm-stable`: strict required reviewer; no self-approval if the repository plan supports it.
 6. Keep `S11TNEXT_STABLE_RELEASE_ENABLED` absent or `false` during bootstrap and canary validation.
 7. Review package tarballs for secrets and unexpected files with `pnpm test:packages`.
+8. Run `pnpm governance:audit:stable` and resolve every reported repository-setting failure.
 
 Both package names are unscoped and public. S11tnext records the public registry explicitly in each
 package's `publishConfig`, and the dry-run also supplies `--access public`.
@@ -123,6 +124,23 @@ After both package pages exist, configure the following Trusted Publisher separa
 | Environment name | leave blank |
 | Allowed actions | `npm publish` |
 
+Preview the exact registry mutations without npm authentication:
+
+```sh
+pnpm governance:plan:npm-trust
+```
+
+Then authenticate an npm maintainer with account-level 2FA and run the official npm 11.19 CLI commands:
+
+```sh
+npx --yes npm@11.19.0 login
+npx --yes npm@11.19.0 trust github s11tnext \
+  --file release.yml --repo ugnoguchigxp/s11tnext --allow-publish
+npx --yes npm@11.19.0 trust github s11tnext-cli \
+  --file release.yml --repo ugnoguchigxp/s11tnext --allow-publish
+pnpm governance:audit:npm-trust
+```
+
 The environment is intentionally blank in npm because each package supports only one Trusted Publisher
 and the same workflow uses separate `npm-canary` and `npm-stable` GitHub environments. Approval boundaries
 remain enforced in GitHub. npm requires the workflow filename only, not
@@ -151,7 +169,7 @@ Do not delete the bootstrap token until one OIDC canary succeeds. Do not retain 
    do not use raw encoding.
 4. Run CI on the exact version commit and review `pnpm release:dry-run -- --channel stable` output from a
    clean checkout.
-5. Set `S11TNEXT_STABLE_RELEASE_ENABLED=true`.
+5. Set `S11TNEXT_STABLE_RELEASE_ENABLED=true`, then run `pnpm governance:audit:stable-ready`.
 6. Dispatch `Release` with the exact `main` SHA, `channel=stable`, and `confirm=publish-stable`.
 7. Approve `npm-stable`.
 8. Verify:
