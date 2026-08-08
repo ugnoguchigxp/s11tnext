@@ -53,10 +53,10 @@ export async function runCliAsync(
 		await watchProject({
 			cwd: io.cwd,
 			signal: options.signal ?? controller!.signal,
-			...(config === undefined ? {} : { config }),
-			onChange: () => {
-				runCli(buildArguments, io);
-			},
+				...(config === undefined ? {} : { config }),
+				onChange: () => {
+					return runCli(buildArguments, io) === 0;
+				},
 			onError: (error) => {
 				const message = error instanceof Error ? error.stack ?? error.message : String(error);
 				io.stderr(`S11TNEXT_INTERNAL_ERROR: ${message}\n`);
