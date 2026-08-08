@@ -21,7 +21,7 @@ if (runtimeVersion !== cliVersion) {
 }
 
 const source = readFileSync(versionSourcePath, "utf8");
-const pattern = /export const COMPILER_VERSION = "([^"]+)";/;
+const pattern = /export const COMPILER_VERSION: string = "([^"]+)";/;
 const match = source.match(pattern);
 if (match === null) throw new Error(`COMPILER_VERSION was not found in ${versionSourcePath}`);
 
@@ -33,7 +33,7 @@ if (checkOnly) {
 	}
 	process.stdout.write(`Package and compiler versions match (${runtimeVersion}).\n`);
 } else {
-	const updated = source.replace(pattern, `export const COMPILER_VERSION = "${runtimeVersion}";`);
+	const updated = source.replace(pattern, `export const COMPILER_VERSION: string = "${runtimeVersion}";`);
 	if (updated !== source) writeFileSync(versionSourcePath, updated, "utf8");
 	process.stdout.write(`Synchronized compiler version to ${runtimeVersion}.\n`);
 }

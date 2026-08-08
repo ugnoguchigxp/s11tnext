@@ -51,7 +51,7 @@ export type CompileCatalogOptions = {
 };
 
 // @public (undocumented)
-export const COMPILER_VERSION = "0.1.3";
+export const COMPILER_VERSION: string;
 
 // @public (undocumented)
 export function normalizeSectionText(text: string): string;
