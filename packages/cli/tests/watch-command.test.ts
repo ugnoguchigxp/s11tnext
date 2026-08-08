@@ -1,7 +1,7 @@
 import type { FSWatcher } from "node:fs";
 import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,10 @@ import { resolveProjectSourceDirectory, watchProject } from "../src/watch-comman
 type WatchListener = (eventType: "rename" | "change", filename: string | Buffer | null) => void;
 
 const temporaryDirectories: string[] = [];
+const projectDirectory = resolve("/project");
+const projectContexts = resolve(projectDirectory, "contexts");
+const projectPrompts = resolve(projectDirectory, "prompts");
+const projectNewContexts = resolve(projectDirectory, "new-contexts");
 
 function temporaryFixture(): string {
 	const directory = mkdtempSync(join(tmpdir(), "s11tnext-watch-"));
@@ -47,13 +51,13 @@ describe("watch command", () => {
 		const listeners = new Map<string, WatchListener>();
 		const closes = new Map<string, ReturnType<typeof vi.fn>>();
 		const watchCalls: Array<{ path: string; recursive: boolean }> = [];
-		let sourceDirectory = "/project/contexts";
+		let sourceDirectory = projectContexts;
 		let scheduled: (() => void) | undefined;
 		const cancel = vi.fn();
 		const onChange = vi.fn(() => true);
 		const controller = new AbortController();
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange,
 			onError: vi.fn(),
@@ -73,30 +77,30 @@ describe("watch command", () => {
 		});
 
 		expect(watchCalls).toEqual([
-			{ path: "/project", recursive: false },
-			{ path: "/project/contexts", recursive: true },
+			{ path: projectDirectory, recursive: false },
+			{ path: projectContexts, recursive: true },
 		]);
-		listeners.get("/project")?.("change", "README.md");
+		listeners.get(projectDirectory)?.("change", "README.md");
 		expect(scheduled).toBeUndefined();
-		listeners.get("/project/contexts")?.("change", "README.md");
+		listeners.get(projectContexts)?.("change", "README.md");
 		expect(scheduled).toBeUndefined();
-		listeners.get("/project/contexts")?.("change", "app/greeting.context.toml");
+		listeners.get(projectContexts)?.("change", "app/greeting.context.toml");
 		expect(scheduled).toBeTypeOf("function");
 		const sourceBuild = scheduled;
 
-		sourceDirectory = "/project/prompts";
-		listeners.get("/project")?.("rename", "s11tnext.config.toml");
+		sourceDirectory = projectPrompts;
+		listeners.get(projectDirectory)?.("rename", "s11tnext.config.toml");
 		expect(cancel).toHaveBeenCalledTimes(1);
 		expect(scheduled).not.toBe(sourceBuild);
 		scheduled?.();
 		expect(onChange).toHaveBeenCalledTimes(1);
-		expect(watchCalls.at(-1)).toEqual({ path: "/project/prompts", recursive: true });
-		expect(closes.get("/project/contexts")).toHaveBeenCalledTimes(1);
+		expect(watchCalls.at(-1)).toEqual({ path: projectPrompts, recursive: true });
+		expect(closes.get(projectContexts)).toHaveBeenCalledTimes(1);
 
 		controller.abort();
 		await expect(promise).resolves.toBeUndefined();
-		expect(closes.get("/project")).toHaveBeenCalledTimes(1);
-		expect(closes.get("/project/prompts")).toHaveBeenCalledTimes(1);
+		expect(closes.get(projectDirectory)).toHaveBeenCalledTimes(1);
+		expect(closes.get(projectPrompts)).toHaveBeenCalledTimes(1);
 	});
 
 	it("rebuilds for source renames and reports rebuild exceptions without stopping", async () => {
@@ -105,16 +109,16 @@ describe("watch command", () => {
 		const onError = vi.fn();
 		const controller = new AbortController();
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange: () => {
 				throw expected;
 			},
 			onError,
 			debounceMilliseconds: 0,
-			resolveSourceDirectory: () => "/project/contexts",
+			resolveSourceDirectory: () => projectContexts,
 			watchFactory: (path, _options, listener) => {
-				if (path === "/project/contexts") sourceListener = listener;
+				if (path === projectContexts) sourceListener = listener;
 				return { close: vi.fn() };
 			},
 			schedule: (callback) => {
@@ -131,17 +135,17 @@ describe("watch command", () => {
 
 	it("does not reparse unchanged config after a successful source rebuild", async () => {
 		let sourceListener: WatchListener | undefined;
-		const resolveSourceDirectory = vi.fn(() => "/project/contexts");
+		const resolveSourceDirectory = vi.fn(() => projectContexts);
 		const onChange = vi.fn(() => true);
 		const controller = new AbortController();
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange,
 			onError: vi.fn(),
 			resolveSourceDirectory,
 			watchFactory: (path, _options, listener) => {
-				if (path === "/project/contexts") sourceListener = listener;
+				if (path === projectContexts) sourceListener = listener;
 				return { close: vi.fn() };
 			},
 			schedule: (callback) => {
@@ -162,18 +166,18 @@ describe("watch command", () => {
 		let resolveCalls = 0;
 		const onError = vi.fn();
 		const watchFactory = vi.fn((path: string, _options: { recursive: boolean }, listener: WatchListener) => {
-			if (path === "/project") configListener = listener;
+			if (path === projectDirectory) configListener = listener;
 			return { close: vi.fn() };
 		});
 		const controller = new AbortController();
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange: () => false,
 			onError,
 			resolveSourceDirectory: () => {
 				resolveCalls += 1;
-				if (resolveCalls === 1) return "/project/contexts";
+				if (resolveCalls === 1) return projectContexts;
 				throw new Error("invalid config");
 			},
 			watchFactory,
@@ -192,17 +196,17 @@ describe("watch command", () => {
 
 	it("moves to a valid new source directory while its first build is failing", async () => {
 		let configListener: WatchListener | undefined;
-		let sourceDirectory = "/project/contexts";
+		let sourceDirectory = projectContexts;
 		const closes = new Map<string, ReturnType<typeof vi.fn>>();
 		const watchFactory = vi.fn((path: string, _options: { recursive: boolean }, listener: WatchListener) => {
-			if (path === "/project") configListener = listener;
+			if (path === projectDirectory) configListener = listener;
 			const close = vi.fn();
 			closes.set(path, close);
 			return { close };
 		});
 		const controller = new AbortController();
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange: () => false,
 			onError: vi.fn(),
@@ -214,14 +218,14 @@ describe("watch command", () => {
 			},
 		});
 
-		sourceDirectory = "/project/new-contexts";
+		sourceDirectory = projectNewContexts;
 		configListener?.("change", "s11tnext.config.toml");
 		expect(watchFactory).toHaveBeenLastCalledWith(
-			"/project/new-contexts",
+			projectNewContexts,
 			{ recursive: true },
 			expect.any(Function),
 		);
-		expect(closes.get("/project/contexts")).toHaveBeenCalledOnce();
+		expect(closes.get(projectContexts)).toHaveBeenCalledOnce();
 		controller.abort();
 		await expect(promise).resolves.toBeUndefined();
 	});
@@ -233,17 +237,17 @@ describe("watch command", () => {
 		const onError = vi.fn();
 		const controller = new AbortController();
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange: () => true,
 			onError,
 			resolveSourceDirectory: () => {
 				resolveCalls += 1;
-				if (resolveCalls === 1) return "/project/contexts";
+				if (resolveCalls === 1) return projectContexts;
 				throw expected;
 			},
 			watchFactory: (path, _options, listener) => {
-				if (path === "/project") configListener = listener;
+				if (path === projectDirectory) configListener = listener;
 				return { close: vi.fn() };
 			},
 			schedule: (callback) => {
@@ -265,11 +269,11 @@ describe("watch command", () => {
 		const controller = new AbortController();
 		const expected = new Error("watcher failed");
 		const promise = watchProject({
-			cwd: "/project",
+			cwd: projectDirectory,
 			signal: controller.signal,
 			onChange: vi.fn(),
 			onError: vi.fn(),
-			resolveSourceDirectory: () => "/project/contexts",
+			resolveSourceDirectory: () => projectContexts,
 			watchFactory: () => {
 				const close = vi.fn();
 				closes.push(close);
@@ -297,7 +301,7 @@ describe("watch command", () => {
 		const watchFactory = vi.fn();
 		await expect(
 			watchProject({
-				cwd: "/project",
+				cwd: projectDirectory,
 				signal: controller.signal,
 				onChange: vi.fn(),
 				onError: vi.fn(),
