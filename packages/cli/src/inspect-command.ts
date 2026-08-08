@@ -1,5 +1,5 @@
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
 import { compileProject } from "./compile-source.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
 import { loadProject } from "./discover.js";
 
 const LOCALE_PATTERN = /^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/;
@@ -40,10 +40,7 @@ function coverageDiagnostic(
 	throw new S11tnextDiagnosticError([{ code, severity: "error", message, file, path }]);
 }
 
-function hasLocale(
-	sections: readonly { locales: Record<string, string> }[],
-	locale: string,
-): boolean {
+function hasLocale(sections: readonly { locales: Record<string, string> }[], locale: string): boolean {
 	return sections.every((section) => Object.hasOwn(section.locales, locale));
 }
 
@@ -75,18 +72,13 @@ export function inspectCoverage(options: {
 			["fallbackLocales"],
 		);
 	}
-	const project = loadProject(
-		options.config,
-		options.cwd,
-		options.releaseProfile,
-		{ validateRequiredCoverage: false },
-	);
+	const project = loadProject(options.config, options.cwd, options.releaseProfile, {
+		validateRequiredCoverage: false,
+	});
 	const direct: string[] = [];
 	const fallback: string[] = [];
 	const missing: string[] = [];
-	const resolvedByLocale = Object.fromEntries(
-		fallbackLocales.map((locale) => [locale, [] as string[]]),
-	);
+	const resolvedByLocale = Object.fromEntries(fallbackLocales.map((locale) => [locale, [] as string[]]));
 	const requiredLocalesByContext: Record<string, string[]> = {};
 	const sourceLocalesByContext: Record<string, string> = {};
 	let requiredCoverageSatisfied = true;
@@ -110,11 +102,7 @@ export function inspectCoverage(options: {
 		resolvedByLocale[resolvedFallback]!.push(key);
 	}
 	const requiredLocales = [
-		...new Set(
-			project.documents.flatMap(
-				(document) => document.definition.requiredLocales,
-			),
-		),
+		...new Set(project.documents.flatMap((document) => document.definition.requiredLocales)),
 	].sort();
 	const sourceLocales = [...new Set(Object.values(sourceLocalesByContext))].sort();
 	direct.sort();
@@ -145,7 +133,13 @@ export function inspectCoverage(options: {
 
 export function inspectContext(
 	key: string,
-	options: { config?: string; locale?: string; cwd?: string; releaseProfile?: string; resolved?: boolean } = {},
+	options: {
+		config?: string;
+		locale?: string;
+		cwd?: string;
+		releaseProfile?: string;
+		resolved?: boolean;
+	} = {},
 ): unknown {
 	const project = compileProject(options.config, options.cwd, options.releaseProfile);
 	if (!Object.hasOwn(project.artifact.contexts, key)) {

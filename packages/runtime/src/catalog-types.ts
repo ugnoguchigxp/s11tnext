@@ -20,12 +20,9 @@ export type DefaultContract = CatalogContract<
 	Record<string, "text">,
 	Record<string, PromptMessageRole>
 >;
-export type ContractKey<C> =
-	C extends CatalogContract<infer K, infer _V, infer _O, infer _R> ? K : never;
-export type ContractValues<C> =
-	C extends CatalogContract<infer _K, infer V, infer _O, infer _R> ? V : never;
-export type ContractRoles<C> =
-	C extends CatalogContract<infer _K, infer _V, infer _O, infer R> ? R : never;
+export type ContractKey<C> = C extends CatalogContract<infer K, infer _V, infer _O, infer _R> ? K : never;
+export type ContractValues<C> = C extends CatalogContract<infer _K, infer V, infer _O, infer _R> ? V : never;
+export type ContractRoles<C> = C extends CatalogContract<infer _K, infer _V, infer _O, infer R> ? R : never;
 
 export type CatalogBinding = {
 	instructionLocale: string;
@@ -33,9 +30,7 @@ export type CatalogBinding = {
 	trailingNewline?: boolean;
 };
 
-export type TextRenderer<C extends DefaultContract = DefaultContract> = <
-	K extends ContractKey<C>,
->(
+export type TextRenderer<C extends DefaultContract = DefaultContract> = <K extends ContractKey<C>>(
 	key: K,
 	values: ContractValues<C>[K],
 ) => string;
@@ -94,10 +89,7 @@ export type BoundRequestCatalog<C extends DefaultContract = DefaultContract> = {
 
 export type CatalogBindingResolver = () => CatalogBinding;
 
-export type PromptInvocation<
-	K extends string = string,
-	R extends PromptMessageRole = PromptMessageRole,
-> = {
+export type PromptInvocation<K extends string = string, R extends PromptMessageRole = PromptMessageRole> = {
 	readonly key: K;
 	readonly role: R;
 	readonly content: {
@@ -129,8 +121,7 @@ export type PromptInvocation<
 /**
  * @deprecated Use PromptInvocation.
  */
-export type SystemContextInvocation<K extends string = string> =
-	PromptInvocation<K, "system">;
+export type SystemContextInvocation<K extends string = string> = PromptInvocation<K, "system">;
 
 export type PromptDescription = {
 	readonly key: string;
@@ -154,7 +145,9 @@ export type Catalog<C extends DefaultContract = DefaultContract> = {
 	readonly releaseProfile: string;
 	list(): readonly PromptDescription[];
 	describe<K extends ContractKey<C>>(key: K): PromptDescription;
-	bind(binding: CatalogBinding): <K extends ContractKey<C>>(
+	bind(
+		binding: CatalogBinding,
+	): <K extends ContractKey<C>>(
 		key: K,
 		values: ContractValues<C>[K],
 	) => PromptInvocation<K, ContractRoles<C>[K]>;

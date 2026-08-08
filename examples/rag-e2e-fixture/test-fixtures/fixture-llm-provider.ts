@@ -1,8 +1,5 @@
 import type { LlmProvider, LlmRequest } from "../src/rag.js";
-import {
-	renderLlmFixture,
-	type LlmFixtureKey,
-} from "./catalog.js";
+import { type LlmFixtureKey, renderLlmFixture } from "./catalog.js";
 
 export class FixtureLlmProvider implements LlmProvider {
 	readonly #requests: LlmRequest[] = [];

@@ -5,6 +5,18 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 export const criticalCoverageRequirements = {
+	"packages/cli/src/async-main.ts": {
+		statements: 85,
+		branches: 80,
+		functions: 90,
+		lines: 85,
+	},
+	"packages/cli/src/filesystem-diagnostics.ts": {
+		statements: 95,
+		branches: 95,
+		functions: 100,
+		lines: 95,
+	},
 	"packages/cli/src/authoring.ts": {
 		statements: 80,
 		branches: 75,
@@ -28,6 +40,12 @@ export const criticalCoverageRequirements = {
 		branches: 60,
 		functions: 55,
 		lines: 84,
+	},
+	"packages/cli/src/watch-command.ts": {
+		statements: 85,
+		branches: 80,
+		functions: 80,
+		lines: 90,
 	},
 	"packages/runtime/src/catalog-shared.ts": {
 		statements: 85,

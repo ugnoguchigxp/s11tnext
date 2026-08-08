@@ -2,17 +2,12 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import {
-	parseAndResolveAuthoring,
-	validateResolvedDocuments,
-} from "../src/authoring.js";
+import { parseAndResolveAuthoring, validateResolvedDocuments } from "../src/authoring.js";
 import { compileProject } from "../src/compile-source.js";
 import { parseProjectConfig } from "../src/config.js";
 import { inspectContext, inspectCoverage } from "../src/inspect-command.js";
 
-const fixtureRoot = fileURLToPath(
-	new URL("../../../fixtures/valid/content-first/", import.meta.url),
-);
+const fixtureRoot = fileURLToPath(new URL("../../../fixtures/valid/content-first/", import.meta.url));
 const coverageFixtureRoot = fileURLToPath(
 	new URL("../../../fixtures/valid/locale-rollout/", import.meta.url),
 );
@@ -93,22 +88,19 @@ describe("content-first authoring", () => {
 		expect(user.origins.messageRole).toContain("#message_role");
 	});
 
-	it.each(["assistant", 1, true, [], {}])(
-		"rejects invalid message role %j",
-		(message_role) => {
-			expectDiagnostic(
-				() =>
-					parseAndResolveAuthoring(
-						{ message_role, text: "Invalid role" },
-						"contexts/example/invalid.context.toml",
-						"example/invalid.context.toml",
-						testConfig(),
-						"development",
-					),
-				"S11TNEXT_MESSAGE_ROLE_INVALID",
-			);
-		},
-	);
+	it.each(["assistant", 1, true, [], {}])("rejects invalid message role %j", (message_role) => {
+		expectDiagnostic(
+			() =>
+				parseAndResolveAuthoring(
+					{ message_role, text: "Invalid role" },
+					"contexts/example/invalid.context.toml",
+					"example/invalid.context.toml",
+					testConfig(),
+					"development",
+				),
+			"S11TNEXT_MESSAGE_ROLE_INVALID",
+		);
+	});
 
 	it("enforces the delimited placement contract for untrusted variables", () => {
 		const document = parseAndResolveAuthoring(
@@ -306,9 +298,7 @@ describe("content-first authoring", () => {
 		{
 			name: "unknown section profile",
 			input: {
-				sections: [
-					{ id: "optional.detail", profile: "missing", text: "Detail" },
-				],
+				sections: [{ id: "optional.detail", profile: "missing", text: "Detail" }],
 			},
 			config: testConfig(),
 			code: "S11TNEXT_SECTION_PROFILE_NOT_FOUND",
@@ -517,7 +507,6 @@ describe("content-first authoring", () => {
 				}),
 			"S11TNEXT_LOCALE_NOT_FOUND",
 		);
-
 	});
 
 	it("reports direct, ordered fallback, missing, and required-profile coverage", () => {
@@ -698,9 +687,7 @@ describe("content-first authoring", () => {
 			),
 		).toThrowError(
 			expect.objectContaining({
-				diagnostics: [
-					expect.objectContaining({ code: "S11TNEXT_SOURCE_LOCALE_OVERRIDE" }),
-				],
+				diagnostics: [expect.objectContaining({ code: "S11TNEXT_SOURCE_LOCALE_OVERRIDE" })],
 			}),
 		);
 	});

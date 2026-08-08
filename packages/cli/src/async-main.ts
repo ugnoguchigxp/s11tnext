@@ -1,8 +1,5 @@
-import {
-	CliUsageError,
-	takeCliOption,
-} from "./cli-arguments.js";
-import { runCli, type CommandIo } from "./main.js";
+import { CliUsageError, takeCliOption } from "./cli-arguments.js";
+import { type CommandIo, runCli } from "./main.js";
 import { watchProject } from "./watch-command.js";
 
 export type AsyncCommandOptions = {
@@ -36,9 +33,7 @@ export async function runCliAsync(
 		const buildArguments = [
 			"build",
 			...(config === undefined ? [] : ["--config", config]),
-			...(releaseProfile === undefined
-				? []
-				: ["--release-profile", releaseProfile]),
+			...(releaseProfile === undefined ? [] : ["--release-profile", releaseProfile]),
 			"--format",
 			format,
 		];
@@ -49,16 +44,16 @@ export async function runCliAsync(
 				? `${JSON.stringify({ ok: true, watching: true, config: config ?? "s11tnext.config.toml" })}\n`
 				: `Watching ${config ?? "s11tnext.config.toml"} and .context.toml files. Press Ctrl-C to stop.\n`,
 		);
-		const controller = options.signal === undefined ? new AbortController() : undefined;
+		const signal = options.signal ?? new AbortController().signal;
 		await watchProject({
 			cwd: io.cwd,
-			signal: options.signal ?? controller!.signal,
+			signal,
 			...(config === undefined ? {} : { config }),
 			onChange: () => {
-				runCli(buildArguments, io);
+				return runCli(buildArguments, io) === 0;
 			},
 			onError: (error) => {
-				const message = error instanceof Error ? error.stack ?? error.message : String(error);
+				const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
 				io.stderr(`S11TNEXT_INTERNAL_ERROR: ${message}\n`);
 			},
 		});
@@ -75,7 +70,7 @@ export async function runCliAsync(
 			io.stderr(`${error.message}\n\n${help}`);
 			return 2;
 		}
-		const message = error instanceof Error ? error.stack ?? error.message : String(error);
+		const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
 		io.stderr(`S11TNEXT_INTERNAL_ERROR: ${message}\n`);
 		return 3;
 	}

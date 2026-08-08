@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { parse } from "smol-toml";
 
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
+import { fileSystemFailure } from "./filesystem-diagnostics.js";
 
 type TomlError = Error & { line?: number; column?: number };
 
@@ -10,15 +11,8 @@ export function loadToml(filePath: string, displayFile: string): unknown {
 	let source: string;
 	try {
 		source = readFileSync(filePath, "utf8");
-	} catch {
-		const diagnostic: S11tnextDiagnostic = {
-			code: "S11TNEXT_FILE_NOT_FOUND",
-			severity: "error",
-			message: "File could not be read",
-			file: displayFile,
-			path: [],
-		};
-		throw new S11tnextDiagnosticError([diagnostic]);
+	} catch (error) {
+		fileSystemFailure(error, { file: displayFile, path: [], target: "file" });
 	}
 	try {
 		return parse(source);

@@ -1,10 +1,10 @@
 import {
 	cpSync,
 	existsSync,
-	mkdtempSync,
 	mkdirSync,
-	readFileSync,
+	mkdtempSync,
 	readdirSync,
+	readFileSync,
 	realpathSync,
 	rmSync,
 	writeFileSync,
@@ -106,9 +106,7 @@ function validateManifest(path, commit) {
 	}
 	if (
 		manifest.packages.length !== packageNames.length ||
-		packageNames.some(
-			(name) => manifest.packages.filter((entry) => entry?.name === name).length !== 1,
-		)
+		packageNames.some((name) => manifest.packages.filter((entry) => entry?.name === name).length !== 1)
 	) {
 		throw new Error("The S11tnext package manifest must contain runtime and CLI exactly once");
 	}
@@ -158,7 +156,7 @@ dependency from the same tarball instead of querying the npm registry.
 - S11tnext commit: \`${commit}\`
 - Runtime SHA-512: \`${runtime.sha512}\`
 - CLI SHA-512: \`${cli.sha512}\`
-- Supported Node.js versions: \`^20.19.0 || ^22.0.0 || ^24.0.0\`
+- Supported Node.js versions: \`^22.0.0 || ^24.0.0\`
 
 The tarballs passed S11tnext's release dry-run, package-content allowlist, isolated
 ESM consumer, type, runtime, CLI, and production dependency audit gates before
@@ -171,22 +169,14 @@ being copied here. Keep the exact version pinned during dogfooding.
 	packageJson.dependencies ??= {};
 	packageJson.devDependencies ??= {};
 	packageJson.overrides ??= {};
-	packageJson.dependencies["s11tnext"] = `file:./vendor/s11tnext/${runtime.file}`;
+	packageJson.dependencies.s11tnext = `file:./vendor/s11tnext/${runtime.file}`;
 	packageJson.devDependencies["s11tnext-cli"] = `file:./vendor/s11tnext/${cli.file}`;
-	packageJson.overrides["s11tnext"] = `file:./vendor/s11tnext/${runtime.file}`;
+	packageJson.overrides.s11tnext = `file:./vendor/s11tnext/${runtime.file}`;
 	writeJson(packagePath, packageJson, "\t");
 	return { runtime, cli };
 }
 
-function verifyNightWorkers(
-	target,
-	runtime,
-	cli,
-	version,
-	fullVerification,
-	execute,
-	checkpoint,
-) {
+function verifyNightWorkers(target, runtime, cli, version, fullVerification, execute, checkpoint) {
 	execute(bun, ["install", "--ignore-scripts"], target);
 	checkpoint("target-install");
 	execute(bun, ["install", "--frozen-lockfile", "--ignore-scripts"], target);
@@ -196,8 +186,8 @@ function verifyNightWorkers(
 		if (installed.name !== entry.name || installed.version !== version) {
 			throw new Error(`${entry.name}@${version} was not installed from the vendored tarball`);
 		}
-		if (installed.engines?.node !== "^20.19.0 || ^22.0.0 || ^24.0.0") {
-			throw new Error(`${entry.name} does not declare Node.js 20.19 support`);
+		if (installed.engines?.node !== "^22.0.0 || ^24.0.0") {
+			throw new Error(`${entry.name} does not declare the supported Node.js range`);
 		}
 	}
 	const lock = readFileSync(resolve(target, "bun.lock"), "utf8");
@@ -237,11 +227,7 @@ function pruneOldTarballs(target, keep) {
 
 export function deployNightWorkers(
 	{ target, verify = false },
-	{
-		execute = executeCommand,
-		captured = capturedCommand,
-		checkpoint = () => {},
-	} = {},
+	{ execute = executeCommand, captured = capturedCommand, checkpoint = () => {} } = {},
 ) {
 	assertNightWorkers(target);
 	const commit = captured("git", ["rev-parse", "HEAD"], repositoryRoot);
@@ -268,27 +254,14 @@ export function deployNightWorkers(
 		checkpoint("source-install");
 		execute(pnpm, ["version:canary"], worktree);
 		checkpoint("source-version");
-		execute(
-			pnpm,
-			["release:dry-run", "--", "--channel", "canary", "--allow-snapshot-changes"],
-			worktree,
-		);
+		execute(pnpm, ["release:dry-run", "--", "--channel", "canary", "--allow-snapshot-changes"], worktree);
 		checkpoint("source-release-dry-run");
 
 		const artifactDirectory = resolve(worktree, ".artifacts/packages");
-		const { manifest, version } = validateManifest(
-			resolve(artifactDirectory, "manifest.json"),
-			commit,
-		);
+		const { manifest, version } = validateManifest(resolve(artifactDirectory, "manifest.json"), commit);
 		backupState = backupManagedFiles(target, backupRoot);
 		targetMutated = true;
-		const { runtime, cli } = installManifest(
-			target,
-			artifactDirectory,
-			manifest,
-			version,
-			commit,
-		);
+		const { runtime, cli } = installManifest(target, artifactDirectory, manifest, version, commit);
 		checkpoint("target-manifest-installed");
 		verifyNightWorkers(target, runtime, cli, version, verify, execute, checkpoint);
 		pruneOldTarballs(target, new Set([runtime.file, cli.file]));

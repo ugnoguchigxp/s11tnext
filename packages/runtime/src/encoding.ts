@@ -85,7 +85,10 @@ function snapshotJsonValueInternal(
 	throw new S11tnextError("S11TNEXT_VALUE_INVALID", "Expected a JSON-compatible value", path);
 }
 
-export function assertJsonValue(value: unknown, path: Array<string | number> = []): asserts value is JsonValue {
+export function assertJsonValue(
+	value: unknown,
+	path: Array<string | number> = [],
+): asserts value is JsonValue {
 	snapshotJsonValueInternal(value, path, new Set<object>());
 }
 
@@ -95,6 +98,7 @@ function escapeJsonString(value: string): string {
 
 export function escapeBoundaryCharacters(value: string): string {
 	return value.replace(
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: the encoder must escape these exact unsafe ranges.
 		/[<>&\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u2028-\u202e\u2066-\u2069]/g,
 		(character) => {
 			const code = character.codePointAt(0);
@@ -113,10 +117,7 @@ export function encodeValue(
 	if (definition.type === "string" && typeof value !== "string") {
 		throw new S11tnextError("S11TNEXT_VALUE_INVALID", "Expected a string", path);
 	}
-	if (
-		definition.type === "number" &&
-		(typeof value !== "number" || !Number.isFinite(value))
-	) {
+	if (definition.type === "number" && (typeof value !== "number" || !Number.isFinite(value))) {
 		throw new S11tnextError("S11TNEXT_VALUE_INVALID", "Expected a finite number", path);
 	}
 	if (definition.type === "boolean" && typeof value !== "boolean") {
@@ -133,7 +134,5 @@ export function encodeValue(
 	if (definition.encoding === "json-string") return escapeJsonString(String(value));
 	jsonValue ??= snapshotJsonValueInternal(value, path, new Set<object>());
 	const encoded = canonicalJson(jsonValue);
-	return options.escapeBoundaryCharacters === true
-		? escapeBoundaryCharacters(encoded)
-		: encoded;
+	return options.escapeBoundaryCharacters === true ? escapeBoundaryCharacters(encoded) : encoded;
 }

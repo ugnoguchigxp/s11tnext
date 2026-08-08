@@ -1,12 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	readFileSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import crossSpawn from "cross-spawn";
@@ -45,8 +38,8 @@ mkdirSync(outputDirectory, { recursive: true });
 for (const name of readdirSync(outputDirectory)) {
 	if (
 		name === "manifest.json" ||
-		packageDefinitions.some((definition) =>
-			name.startsWith(tarballPrefix(definition.name)) && name.endsWith(".tgz"),
+		packageDefinitions.some(
+			(definition) => name.startsWith(tarballPrefix(definition.name)) && name.endsWith(".tgz"),
 		)
 	) {
 		rmSync(resolve(outputDirectory, name), { force: true });
@@ -67,9 +60,7 @@ for (const definition of packageDefinitions) {
 	}
 	const before = new Set(readdirSync(outputDirectory));
 	run(pnpm, ["pack", "--pack-destination", outputDirectory], definition.directory);
-	const created = readdirSync(outputDirectory).filter(
-		(name) => !before.has(name) && name.endsWith(".tgz"),
-	);
+	const created = readdirSync(outputDirectory).filter((name) => !before.has(name) && name.endsWith(".tgz"));
 	if (created.length !== 1) {
 		throw new Error(`Expected one tarball for ${definition.name}, found ${created.length}`);
 	}
@@ -92,4 +83,6 @@ if (versions.size !== 1) throw new Error("Runtime and CLI tarballs must share on
 
 const manifest = { packages };
 writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-process.stdout.write(`Packed ${packages.length} packages into ${relative(repositoryRoot, outputDirectory)}.\n`);
+process.stdout.write(
+	`Packed ${packages.length} packages into ${relative(repositoryRoot, outputDirectory)}.\n`,
+);

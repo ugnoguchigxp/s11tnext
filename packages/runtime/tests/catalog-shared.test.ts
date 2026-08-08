@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-	digestMismatch,
-	renderSection,
-	valuesRecord,
-} from "../src/catalog-shared.js";
-import { S11tnextError } from "../src/diagnostics.js";
+import { digestMismatch, renderSection, valuesRecord } from "../src/catalog-shared.js";
+import type { S11tnextError } from "../src/diagnostics.js";
 
 describe("catalog internal guards", () => {
 	it("reports digest mismatches with the stable error contract", () => {
@@ -27,11 +23,8 @@ describe("catalog internal guards", () => {
 	});
 
 	it("fails closed when a compiled segment has no encoded value", () => {
-		expect(() =>
-			renderSection(
-				{ segments: [{ type: "variable", name: "missing" }] },
-				{},
-			),
-		).toThrowError(expect.objectContaining<S11tnextError>({ code: "S11TNEXT_ARTIFACT_INVALID" }));
+		expect(() => renderSection({ segments: [{ type: "variable", name: "missing" }] }, {})).toThrowError(
+			expect.objectContaining<S11tnextError>({ code: "S11TNEXT_ARTIFACT_INVALID" }),
+		);
 	});
 });

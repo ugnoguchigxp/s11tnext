@@ -1,6 +1,4 @@
-import {
-	createAppCatalog as createPromptCatalog,
-} from "../prompts/generated/catalog.generated.js";
+import { createAppCatalog as createPromptCatalog } from "../prompts/generated/catalog.generated.js";
 import promptArtifact from "../prompts/generated/catalog.json" with { type: "json" };
 
 import type { RagDocument } from "./corpus.js";
@@ -12,10 +10,7 @@ const renderPrompt = promptCatalog.bind({
 	trailingNewline: false,
 });
 
-export function renderRagPrompt(
-	question: string,
-	retrievedDocuments: readonly RagDocument[],
-) {
+export function renderRagPrompt(question: string, retrievedDocuments: readonly RagDocument[]) {
 	return renderPrompt("rag.answer", {
 		question,
 		retrievedDocuments: retrievedDocuments.map(({ id, title, text }) => ({

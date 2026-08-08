@@ -2,7 +2,7 @@
 
 Portable S11tnext artifact contracts, deterministic compiler primitives, and the typed catalog API.
 This package uses no Node.js builtins, filesystem APIs, process state, or TOML parsing.
-Supported Node.js releases are 20.19+, 22, and 24.
+Supported Node.js releases are 22 and 24.
 
 This package is available from the npm registry and remains in `0.x` pre-release development.
 Review the changelog and compatibility policy when upgrading.

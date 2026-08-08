@@ -7,10 +7,7 @@ import { describe, expect, it } from "vitest";
 import { parseProjectConfig } from "../src/config.js";
 
 const schema = JSON.parse(
-	readFileSync(
-		new URL("../../../schemas/s11tnext-config.schema.json", import.meta.url),
-		"utf8",
-	),
+	readFileSync(new URL("../../../schemas/s11tnext-config.schema.json", import.meta.url), "utf8"),
 ) as object;
 const validate = new Ajv2020({ strict: true }).compile(schema);
 
@@ -32,13 +29,12 @@ describe("project config JSON Schema", () => {
 	});
 
 	it("rejects unsupported fields and unsafe variable profiles", () => {
-		const base = parse(
-			readFileSync(new URL(validConfigs[0]!, import.meta.url), "utf8"),
-		) as Record<string, unknown>;
+		const base = parse(readFileSync(new URL(validConfigs[0]!, import.meta.url), "utf8")) as Record<
+			string,
+			unknown
+		>;
 		expect(validate({ ...base, unsupported: true })).toBe(false);
-		expect(() =>
-			parseProjectConfig({ ...base, unsupported: true }, "config.toml"),
-		).toThrow();
+		expect(() => parseProjectConfig({ ...base, unsupported: true }, "config.toml")).toThrow();
 
 		const unsafe = structuredClone(base) as Record<string, unknown>;
 		unsafe.variable_profiles = {

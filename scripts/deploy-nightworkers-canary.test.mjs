@@ -57,15 +57,9 @@ function originalTargetState(target) {
 function expectOriginalTargetState(target, before) {
 	expect(readFileSync(resolve(target, "package.json"), "utf8")).toBe(before.packageJson);
 	expect(readFileSync(resolve(target, "bun.lock"), "utf8")).toBe(before.lock);
-	expect(readFileSync(resolve(target, "vendor/s11tnext/manifest.json"), "utf8")).toBe(
-		before.manifest,
-	);
-	expect(readFileSync(resolve(target, "vendor/s11tnext/nested/old.tgz"), "utf8")).toBe(
-		before.oldTarball,
-	);
-	expect(readFileSync(resolve(target, "vendor/s11tnext/s11tnext-old.tgz"), "utf8")).toBe(
-		before.oldRuntime,
-	);
+	expect(readFileSync(resolve(target, "vendor/s11tnext/manifest.json"), "utf8")).toBe(before.manifest);
+	expect(readFileSync(resolve(target, "vendor/s11tnext/nested/old.tgz"), "utf8")).toBe(before.oldTarball);
+	expect(readFileSync(resolve(target, "vendor/s11tnext/s11tnext-old.tgz"), "utf8")).toBe(before.oldRuntime);
 }
 
 function fakeDeploymentDependencies(target, failureCheckpoint) {
@@ -89,14 +83,11 @@ function fakeDeploymentDependencies(target, failureCheckpoint) {
 				sha512: createHash("sha512").update(bytes).digest("hex"),
 			};
 		});
-		writeFileSync(
-			resolve(directory, "manifest.json"),
-			`${JSON.stringify({ packages }, null, 2)}\n`,
-		);
+		writeFileSync(resolve(directory, "manifest.json"), `${JSON.stringify({ packages }, null, 2)}\n`);
 	}
 	function installTarget() {
 		const packageJson = JSON.parse(readFileSync(resolve(target, "package.json"), "utf8"));
-		const runtimeReference = packageJson.dependencies?.["s11tnext"];
+		const runtimeReference = packageJson.dependencies?.s11tnext;
 		const cliReference = packageJson.devDependencies?.["s11tnext-cli"];
 		if (typeof runtimeReference !== "string" || typeof cliReference !== "string") return;
 		const manifest = JSON.parse(readFileSync(resolve(target, "vendor/s11tnext/manifest.json"), "utf8"));
@@ -108,15 +99,13 @@ function fakeDeploymentDependencies(target, failureCheckpoint) {
 				`${JSON.stringify({
 					name: entry.name,
 					version: entry.version,
-					engines: { node: "^20.19.0 || ^22.0.0 || ^24.0.0" },
+					engines: { node: "^22.0.0 || ^24.0.0" },
 				})}\n`,
 			);
 		}
 		writeFileSync(
 			resolve(target, "bun.lock"),
-			manifest.packages
-				.map((entry) => `${entry.name}@./vendor/s11tnext/${entry.file}`)
-				.join("\n"),
+			manifest.packages.map((entry) => `${entry.name}@./vendor/s11tnext/${entry.file}`).join("\n"),
 		);
 	}
 	return {
@@ -131,16 +120,9 @@ function fakeDeploymentDependencies(target, failureCheckpoint) {
 			commands.push({ command, arguments: [...arguments_], cwd });
 			if (command === "git" && arguments_[0] === "worktree" && arguments_[1] === "add") {
 				mkdirSync(arguments_[3], { recursive: true });
-			} else if (
-				command === "git" &&
-				arguments_[0] === "worktree" &&
-				arguments_[1] === "remove"
-			) {
+			} else if (command === "git" && arguments_[0] === "worktree" && arguments_[1] === "remove") {
 				// The production finally block removes the enclosing temporary directory.
-			} else if (
-				(command === "pnpm" || command === "pnpm.cmd") &&
-				arguments_[0] === "release:dry-run"
-			) {
+			} else if ((command === "pnpm" || command === "pnpm.cmd") && arguments_[0] === "release:dry-run") {
 				writeArtifacts(cwd);
 			} else if (
 				(command === "pnpm" || command === "pnpm.cmd") &&
@@ -206,9 +188,7 @@ describe("NightWorkers deployment rollback", () => {
 			'{"name":"nightworkers","original":true}\n',
 		);
 		expect(readFileSync(resolve(target, "bun.lock"), "utf8")).toBe("original lock\n");
-		expect(readFileSync(resolve(target, "vendor/s11tnext/nested/package.tgz"), "utf8")).toBe(
-			"old tarball",
-		);
+		expect(readFileSync(resolve(target, "vendor/s11tnext/nested/package.tgz"), "utf8")).toBe("old tarball");
 		expect(existsSync(resolve(target, "vendor/s11tnext/empty"))).toBe(true);
 		if (process.platform !== "win32") {
 			expect(statSync(resolve(target, "package.json")).mode & 0o777).toBe(0o640);
@@ -245,37 +225,29 @@ describe("NightWorkers deployment rollback", () => {
 			writeFileSync(outsidePackage, '{"name":"nightworkers","outside":true}\n');
 			symlinkSync(outsidePackage, resolve(target, "package.json"), "file");
 
-			expect(() => backupManagedFiles(target, backup)).toThrowError(
-				/Unsupported managed symbolic link/,
-			);
-			expect(readFileSync(outsidePackage, "utf8")).toBe(
-				'{"name":"nightworkers","outside":true}\n',
-			);
+			expect(() => backupManagedFiles(target, backup)).toThrowError(/Unsupported managed symbolic link/);
+			expect(readFileSync(outsidePackage, "utf8")).toBe('{"name":"nightworkers","outside":true}\n');
 
 			rmSync(resolve(target, "package.json"));
 			writeFileSync(resolve(target, "package.json"), '{"name":"nightworkers"}\n');
 			symlinkSync(resolve(outside, "missing-bun.lock"), resolve(target, "bun.lock"), "file");
-			expect(() => backupManagedFiles(target, backup)).toThrowError(
-				/Unsupported managed symbolic link/,
-			);
+			expect(() => backupManagedFiles(target, backup)).toThrowError(/Unsupported managed symbolic link/);
 		},
 	);
 
-	it.each([
-		"source-worktree",
-		"source-install",
-		"source-version",
-		"source-release-dry-run",
-	])("leaves the target untouched when %s fails before mutation", (checkpoint) => {
-		const target = createNightWorkersTarget();
-		const before = originalTargetState(target);
-		const dependencies = fakeDeploymentDependencies(target, checkpoint);
+	it.each(["source-worktree", "source-install", "source-version", "source-release-dry-run"])(
+		"leaves the target untouched when %s fails before mutation",
+		(checkpoint) => {
+			const target = createNightWorkersTarget();
+			const before = originalTargetState(target);
+			const dependencies = fakeDeploymentDependencies(target, checkpoint);
 
-		expect(() =>
-			deployNightWorkers({ target, verify: true }, dependencies),
-		).toThrowError(`Injected failure at ${checkpoint}`);
-		expectOriginalTargetState(target, before);
-	});
+			expect(() => deployNightWorkers({ target, verify: true }, dependencies)).toThrowError(
+				`Injected failure at ${checkpoint}`,
+			);
+			expectOriginalTargetState(target, before);
+		},
+	);
 
 	it.each([
 		"target-manifest-installed",
@@ -291,9 +263,9 @@ describe("NightWorkers deployment rollback", () => {
 		const before = originalTargetState(target);
 		const dependencies = fakeDeploymentDependencies(target, checkpoint);
 
-		expect(() =>
-			deployNightWorkers({ target, verify: true }, dependencies),
-		).toThrowError(`Injected failure at ${checkpoint}`);
+		expect(() => deployNightWorkers({ target, verify: true }, dependencies)).toThrowError(
+			`Injected failure at ${checkpoint}`,
+		);
 		expectOriginalTargetState(target, before);
 		expect(dependencies.checkpoints).toContain("rollback-install");
 	});
@@ -305,7 +277,7 @@ describe("NightWorkers deployment rollback", () => {
 		deployNightWorkers({ target, verify: true }, dependencies);
 
 		const packageJson = JSON.parse(readFileSync(resolve(target, "package.json"), "utf8"));
-		expect(packageJson.dependencies["s11tnext"]).toMatch(/^file:\.\/vendor\/s11tnext\//);
+		expect(packageJson.dependencies.s11tnext).toMatch(/^file:\.\/vendor\/s11tnext\//);
 		expect(packageJson.devDependencies["s11tnext-cli"]).toMatch(/^file:\.\/vendor\/s11tnext\//);
 		expect(existsSync(resolve(target, "vendor/s11tnext/s11tnext-old.tgz"))).toBe(false);
 		expect(dependencies.checkpoints).toEqual(

@@ -74,11 +74,7 @@ function nonEmptyString(value: unknown, path: Path): string {
 	return result;
 }
 
-function literal<T extends string | number | boolean>(
-	value: unknown,
-	expected: T,
-	path: Path,
-): T {
+function literal<T extends string | number | boolean>(value: unknown, expected: T, path: Path): T {
 	if (value !== expected) return fail(path, JSON.stringify(expected));
 	return expected;
 }
@@ -127,11 +123,7 @@ function validateVariable(value: unknown, path: Path): void {
 	oneOf(object.type, ["string", "number", "boolean", "json"], [...path, "type"]);
 	oneOf(object.trust, ["trusted", "untrusted"], [...path, "trust"]);
 	oneOf(object.placement, ["inline", "delimited-context"], [...path, "placement"]);
-	oneOf(
-		object.encoding,
-		["raw", "delimited-text", "json-string", "json-value"],
-		[...path, "encoding"],
-	);
+	oneOf(object.encoding, ["raw", "delimited-text", "json-string", "json-value"], [...path, "encoding"]);
 	if (object.trust === "untrusted" && object.encoding === "raw") {
 		fail([...path, "encoding"], "a non-raw encoding for untrusted data");
 	}
@@ -172,11 +164,7 @@ function validateSegment(value: unknown, path: Path, validateVariableName = fals
 
 function validateSection(value: unknown, path: Path, validateVariableNames = false): void {
 	const object = record(value, path);
-	exactKeys(
-		object,
-		["id", "kind", "severity", "optimizable", "omitIfEmpty", "segments"],
-		path,
-	);
+	exactKeys(object, ["id", "kind", "severity", "optimizable", "omitIfEmpty", "segments"], path);
 	nonEmptyString(object.id, [...path, "id"]);
 	oneOf(
 		object.kind,
@@ -186,9 +174,9 @@ function validateSection(value: unknown, path: Path, validateVariableNames = fal
 	oneOf(object.severity, ["must", "should", "may"], [...path, "severity"]);
 	if (typeof object.optimizable !== "boolean") fail([...path, "optimizable"], "a boolean");
 	if (typeof object.omitIfEmpty !== "boolean") fail([...path, "omitIfEmpty"], "a boolean");
-	array(object.segments, [...path, "segments"]).forEach((segment, index) =>
-		validateSegment(segment, [...path, "segments", index], validateVariableNames),
-	);
+	array(object.segments, [...path, "segments"]).forEach((segment, index) => {
+		validateSegment(segment, [...path, "segments", index], validateVariableNames);
+	});
 }
 
 function validateLocale(value: unknown, path: Path, validateVariableNames = false): void {
@@ -196,9 +184,9 @@ function validateLocale(value: unknown, path: Path, validateVariableNames = fals
 	exactKeys(object, ["sections", "artifactHash"], path);
 	const sections = array(object.sections, [...path, "sections"]);
 	if (sections.length === 0) fail([...path, "sections"], "a non-empty array");
-	sections.forEach((section, index) =>
-		validateSection(section, [...path, "sections", index], validateVariableNames),
-	);
+	sections.forEach((section, index) => {
+		validateSection(section, [...path, "sections", index], validateVariableNames);
+	});
 	digest(object.artifactHash, [...path, "artifactHash"]);
 }
 
@@ -229,10 +217,7 @@ function validateContext(value: unknown, path: Path): void {
 	oneOf(object.messageRole, ["system", "user"], [...path, "messageRole"]);
 	const sourceLocale = nonEmptyString(object.sourceLocale, [...path, "sourceLocale"]);
 	if (!LOCALE_PATTERN.test(sourceLocale)) fail([...path, "sourceLocale"], "a locale identifier");
-	const requiredLocales = nonEmptyUniqueStringArray(
-		object.requiredLocales,
-		[...path, "requiredLocales"],
-	);
+	const requiredLocales = nonEmptyUniqueStringArray(object.requiredLocales, [...path, "requiredLocales"]);
 	for (const [index, locale] of requiredLocales.entries()) {
 		if (!LOCALE_PATTERN.test(locale)) {
 			fail([...path, "requiredLocales", index], "a locale identifier");
@@ -286,10 +271,9 @@ export function assertCatalogArtifact(value: unknown): asserts value is S11tnext
 	const createdFrom = record(object.createdFrom, ["createdFrom"]);
 	exactKeys(createdFrom, ["configPath", "sourceFiles"], ["createdFrom"]);
 	relativePosixPath(createdFrom.configPath, ["createdFrom", "configPath"]);
-	stringArray(createdFrom.sourceFiles, ["createdFrom", "sourceFiles"]).forEach(
-		(sourceFile, index) =>
-			relativePosixPath(sourceFile, ["createdFrom", "sourceFiles", index]),
-	);
+	stringArray(createdFrom.sourceFiles, ["createdFrom", "sourceFiles"]).forEach((sourceFile, index) => {
+		relativePosixPath(sourceFile, ["createdFrom", "sourceFiles", index]);
+	});
 	const contexts = record(object.contexts, ["contexts"]);
 	for (const [key, context] of Object.entries(contexts)) {
 		if (!DOT_KEY_PATTERN.test(key)) fail(["contexts", key], "a dot context key");

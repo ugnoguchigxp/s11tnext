@@ -5,8 +5,7 @@ export type RagDocument = Readonly<{
 	keywords: readonly string[];
 }>;
 
-export const EXAMPLE_QUESTION =
-	"S11tnextはLLMプロンプトをどのように管理しますか？";
+export const EXAMPLE_QUESTION = "S11tnextはLLMプロンプトをどのように管理しますか？";
 
 export const RAG_CORPUS: readonly RagDocument[] = Object.freeze([
 	Object.freeze({
@@ -35,16 +34,10 @@ export function retrieveDocuments(
 	return corpus
 		.map((document) => ({
 			document,
-			score: document.keywords.filter((keyword) =>
-				normalizedQuestion.includes(keyword.toLowerCase()),
-			).length,
+			score: document.keywords.filter((keyword) => normalizedQuestion.includes(keyword.toLowerCase())).length,
 		}))
 		.filter(({ score }) => score > 0)
-		.sort(
-			(left, right) =>
-				right.score - left.score ||
-				compareCodeUnits(left.document.id, right.document.id),
-		)
+		.sort((left, right) => right.score - left.score || compareCodeUnits(left.document.id, right.document.id))
 		.slice(0, 1)
 		.map(({ document }) => document);
 }

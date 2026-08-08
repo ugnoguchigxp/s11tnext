@@ -1,11 +1,7 @@
 import { verifyPromptMessageHash } from "s11tnext";
 import { describe, expect, it } from "vitest";
 
-import {
-	EXAMPLE_QUESTION,
-	RAG_CORPUS,
-	retrieveDocuments,
-} from "../src/corpus.js";
+import { EXAMPLE_QUESTION, RAG_CORPUS, retrieveDocuments } from "../src/corpus.js";
 import { answerQuestion } from "../src/rag.js";
 import { FixtureLlmProvider } from "../test-fixtures/fixture-llm-provider.js";
 
@@ -26,22 +22,16 @@ describe("RAG E2E with an S11tnext LLM fixture", () => {
 			},
 		] as const;
 
-		expect(
-			retrieveDocuments("shared", documents).map(({ id }) => id),
-		).toEqual(["document-a"]);
+		expect(retrieveDocuments("shared", documents).map(({ id }) => id)).toEqual(["document-a"]);
 	});
 
 	it("retrieves context and returns a grounded answer without a real LLM", async () => {
 		const firstRetrieval = retrieveDocuments(EXAMPLE_QUESTION);
 		const secondRetrieval = retrieveDocuments(EXAMPLE_QUESTION);
 		expect(firstRetrieval).toEqual(secondRetrieval);
-		expect(firstRetrieval.map(({ id }) => id)).toEqual([
-			"s11tnext-overview",
-		]);
+		expect(firstRetrieval.map(({ id }) => id)).toEqual(["s11tnext-overview"]);
 
-		const provider = new FixtureLlmProvider(
-			"llmFixture.grounded-answer",
-		);
+		const provider = new FixtureLlmProvider("llmFixture.grounded-answer");
 		const result = await answerQuestion(EXAMPLE_QUESTION, provider);
 
 		expect(result).toEqual({
@@ -77,9 +67,7 @@ describe("RAG E2E with an S11tnext LLM fixture", () => {
 	});
 
 	it("rejects a citation that was not retrieved", async () => {
-		const provider = new FixtureLlmProvider(
-			"llmFixture.unsupported-citation",
-		);
+		const provider = new FixtureLlmProvider("llmFixture.unsupported-citation");
 
 		await expect(answerQuestion(EXAMPLE_QUESTION, provider)).rejects.toThrow(
 			"The LLM response cited an unretrieved document: unretrieved-document",
@@ -88,9 +76,7 @@ describe("RAG E2E with an S11tnext LLM fixture", () => {
 	});
 
 	it("rejects an answer without a citation", async () => {
-		const provider = new FixtureLlmProvider(
-			"llmFixture.empty-citations",
-		);
+		const provider = new FixtureLlmProvider("llmFixture.empty-citations");
 
 		await expect(answerQuestion(EXAMPLE_QUESTION, provider)).rejects.toThrow(
 			"The LLM response does not match the RAG answer contract.",
@@ -99,13 +85,11 @@ describe("RAG E2E with an S11tnext LLM fixture", () => {
 	});
 
 	it("does not call the provider when retrieval returns no documents", async () => {
-		const provider = new FixtureLlmProvider(
-			"llmFixture.grounded-answer",
-		);
+		const provider = new FixtureLlmProvider("llmFixture.grounded-answer");
 
-		await expect(
-			answerQuestion("一致するkeywordがない質問です。", provider),
-		).rejects.toThrow("No documents matched the question.");
+		await expect(answerQuestion("一致するkeywordがない質問です。", provider)).rejects.toThrow(
+			"No documents matched the question.",
+		);
 		expect(provider.requests).toHaveLength(0);
 	});
 });

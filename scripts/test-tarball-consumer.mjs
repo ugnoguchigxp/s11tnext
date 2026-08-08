@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,10 +64,8 @@ try {
 	if (lockfile.includes("workspace:") || lockfile.includes(repositoryRoot)) {
 		throw new Error("Consumer lockfile references the workspace");
 	}
-	const dependencyTree = JSON.parse(
-		run(npm, ["ls", "s11tnext", "s11tnext-cli", "--json", "--all"]),
-	);
-	if (dependencyTree.dependencies?.["s11tnext"] === undefined) {
+	const dependencyTree = JSON.parse(run(npm, ["ls", "s11tnext", "s11tnext-cli", "--json", "--all"]));
+	if (dependencyTree.dependencies?.s11tnext === undefined) {
 		throw new Error("Consumer did not install s11tnext");
 	}
 	if (dependencyTree.dependencies?.["s11tnext-cli"] === undefined) {
@@ -75,10 +73,7 @@ try {
 	}
 	const installedRuntimeVersion = dependencyTree.dependencies?.s11tnext?.version;
 	const installedCliVersion = dependencyTree.dependencies?.["s11tnext-cli"]?.version;
-	if (
-		typeof installedRuntimeVersion !== "string" ||
-		installedRuntimeVersion !== installedCliVersion
-	) {
+	if (typeof installedRuntimeVersion !== "string" || installedRuntimeVersion !== installedCliVersion) {
 		throw new Error("Consumer installed mismatched runtime and CLI versions");
 	}
 	for (const entry of manifest?.packages ?? []) {
@@ -132,9 +127,7 @@ try {
 	) {
 		throw new Error("Consumer did not retain the request audit");
 	}
-	const expectedVersion = registryMode
-		? installedRuntimeVersion
-		: manifest?.packages[0]?.version;
+	const expectedVersion = registryMode ? installedRuntimeVersion : manifest?.packages[0]?.version;
 	if (invocation.manifest?.compilerVersion !== expectedVersion) {
 		throw new Error(
 			`Consumer compiler version ${invocation.manifest?.compilerVersion} does not match ${expectedVersion}`,

@@ -1,11 +1,12 @@
 import { mkdirSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { relative, resolve, sep } from "node:path";
 
 import { assertCatalogArtifact } from "s11tnext";
 
 import { compileProject } from "./compile-source.js";
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
 import { emitTypes } from "./emit-types.js";
+import { fileSystemErrorCode, fileSystemFailure } from "./filesystem-diagnostics.js";
 import { replaceGeneratedPair } from "./generated-output.js";
 
 export type BuildResult = {
@@ -29,9 +30,14 @@ function stale(file: string): never {
 function sameBytes(path: string, expected: string): boolean {
 	try {
 		return readFileSync(path, "utf8") === expected;
-	} catch {
-		return false;
+	} catch (error) {
+		if (fileSystemErrorCode(error) === "ENOENT") return false;
+		fileSystemFailure(error, { file: path, path: [], target: "file" });
 	}
+}
+
+function posix(path: string): string {
+	return path.split(sep).join("/");
 }
 
 export function buildProject(
@@ -52,10 +58,19 @@ export function buildProject(
 		if (!sameBytes(typesPath, typeBytes)) stale(typesPath);
 		return { catalogPath, typesPath, catalogDigest: project.artifact.catalogDigest, checked: true };
 	}
-	mkdirSync(outputDirectory, { recursive: true });
-	replaceGeneratedPair([
-		{ path: catalogPath, content: catalogBytes },
-		{ path: typesPath, content: typeBytes },
-	]);
+	try {
+		mkdirSync(outputDirectory, { recursive: true });
+		replaceGeneratedPair([
+			{ path: catalogPath, content: catalogBytes },
+			{ path: typesPath, content: typeBytes },
+		]);
+	} catch (error) {
+		const cwd = options.cwd ?? process.cwd();
+		fileSystemFailure(error, {
+			file: posix(relative(cwd, project.configPath)) || "s11tnext.config.toml",
+			path: ["out_dir"],
+			target: "outputDirectory",
+		});
+	}
 	return { catalogPath, typesPath, catalogDigest: project.artifact.catalogDigest, checked: false };
 }

@@ -14,10 +14,7 @@ const invocation = request.invoke("consumer.identity", {
 	taskGoal: "tarballを検証する",
 });
 const requestAudit = request.finalize(invocation);
-const renderedHashVerified = verifyRenderedHash(
-	invocation.content.text,
-	invocation.manifest.renderedHash,
-);
+const renderedHashVerified = verifyRenderedHash(invocation.content.text, invocation.manifest.renderedHash);
 const boundText = catalog.bindText({ instructionLocale: "ja-JP" });
 const text = boundText.p("consumer.identity", { taskGoal: "tarballを検証する" });
 const statusText = boundText.byKey["consumer.status"]({});
@@ -30,6 +27,7 @@ topLevelInstructionLocale = "en-US";
 const liveStatusTextEn = liveText("consumer.status", {});
 const fixedStatusAfterLanguageChange = boundText.byKey["consumer.status"]({});
 
+// biome-ignore lint/correctness/noConstantCondition: this block contains compile-time negative type assertions.
 if (false) {
 	// @ts-expect-error missing required value
 	boundText.p("consumer.identity", {});

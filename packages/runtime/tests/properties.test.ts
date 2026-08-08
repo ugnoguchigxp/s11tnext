@@ -5,7 +5,7 @@ import type { CanonicalContextDefinition } from "../src/canonical-definition.js"
 import { canonicalJson } from "../src/canonical-json.js";
 import { createCatalog } from "../src/catalog.js";
 import { compileCatalog } from "../src/compiler.js";
-import { S11tnextError } from "../src/diagnostics.js";
+import type { S11tnextError } from "../src/diagnostics.js";
 import { escapeBoundaryCharacters } from "../src/encoding.js";
 import { hashRendered } from "../src/hash.js";
 import type { JsonValue } from "../src/types.js";
@@ -30,9 +30,7 @@ const hostileUnicode = fc
 	)
 	.map((chunks) => chunks.join(""));
 
-function untrustedCatalog(
-	encoding: "delimited-text" | "json-string" = "json-string",
-) {
+function untrustedCatalog(encoding: "delimited-text" | "json-string" = "json-string") {
 	const definition: CanonicalContextDefinition = {
 		key: "property.untrusted",
 		owner: "test",
@@ -115,12 +113,8 @@ describe("runtime properties", () => {
 		fc.assert(
 			fc.property(fc.dictionary(fc.string(), fc.jsonValue()), (record) => {
 				const reversed = Object.fromEntries(Object.entries(record).reverse());
-				expect(canonicalJson(record as JsonValue)).toBe(
-					canonicalJson(reversed as JsonValue),
-				);
-				expect(JSON.parse(canonicalJson(record as JsonValue))).toEqual(
-					JSON.parse(JSON.stringify(record)),
-				);
+				expect(canonicalJson(record as JsonValue)).toBe(canonicalJson(reversed as JsonValue));
+				expect(JSON.parse(canonicalJson(record as JsonValue))).toEqual(JSON.parse(JSON.stringify(record)));
 			}),
 			{ numRuns: 250 },
 		);
@@ -173,10 +167,7 @@ describe("runtime properties", () => {
 		const render = untrustedJsonCatalog();
 		fc.assert(
 			fc.property(fc.string(), (key) => {
-				const cyclic: Record<string, unknown> = Object.create(null) as Record<
-					string,
-					unknown
-				>;
+				const cyclic: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
 				Object.defineProperty(cyclic, key, {
 					enumerable: true,
 					value: cyclic,

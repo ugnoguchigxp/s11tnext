@@ -3,11 +3,7 @@ import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 
 import type { CanonicalContextDefinition } from "./canonical-definition.js";
 import { canonicalJson } from "./canonical-json.js";
-import type {
-	JsonValue,
-	PromptMessageRole,
-	S11tnextCompiledSection,
-} from "./types.js";
+import type { JsonValue, PromptMessageRole, S11tnextCompiledSection } from "./types.js";
 
 const HASH_DOMAINS = {
 	definition: "s11tnext.definition",
@@ -33,9 +29,7 @@ function hashCanonical(domain: string, value: JsonValue): S11tnextDigest {
 	return sha256Utf8(`${domain}\0${canonicalJson(value)}`);
 }
 
-export function hashDefinition(
-	value: CanonicalContextDefinition,
-): S11tnextDigest {
+export function hashDefinition(value: CanonicalContextDefinition): S11tnextDigest {
 	return hashCanonical(HASH_DOMAINS.definition, {
 		key: value.key,
 		owner: value.owner,
@@ -66,9 +60,7 @@ export function hashRelease(value: {
 		key: value.key,
 		compilerVersion: value.compilerVersion,
 		definitionHash: value.definitionHash,
-		artifacts: Object.entries(value.artifactHashes).sort(([left], [right]) =>
-			compareCodeUnits(left, right),
-		),
+		artifacts: Object.entries(value.artifactHashes).sort(([left], [right]) => compareCodeUnits(left, right)),
 	});
 }
 
@@ -92,9 +84,7 @@ export function hashCatalog(value: {
 	return hashCanonical(HASH_DOMAINS.catalog, {
 		compilerVersion: value.compilerVersion,
 		policyDigest: value.policyDigest,
-		releases: Object.entries(value.releaseDigests).sort(([left], [right]) =>
-			compareCodeUnits(left, right),
-		),
+		releases: Object.entries(value.releaseDigests).sort(([left], [right]) => compareCodeUnits(left, right)),
 	});
 }
 
@@ -106,10 +96,7 @@ export function verifyRenderedHash(text: string, digest: string): boolean {
 	return hashRendered(text) === digest;
 }
 
-export function hashPromptMessage(value: {
-	role: PromptMessageRole;
-	text: string;
-}): S11tnextDigest {
+export function hashPromptMessage(value: { role: PromptMessageRole; text: string }): S11tnextDigest {
 	return hashCanonical(HASH_DOMAINS.promptMessage, value);
 }
 

@@ -2,13 +2,9 @@ import { readFileSync } from "node:fs";
 
 import Ajv2020 from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-
-import { compileCatalog, type CanonicalContextDefinition } from "../src/compiler.js";
-import {
-	assertCatalogArtifact,
-	isCatalogArtifact,
-} from "../src/artifact-schema.js";
-import { S11tnextError } from "../src/diagnostics.js";
+import { assertCatalogArtifact, isCatalogArtifact } from "../src/artifact-schema.js";
+import { type CanonicalContextDefinition, compileCatalog } from "../src/compiler.js";
+import type { S11tnextError } from "../src/diagnostics.js";
 
 function artifact() {
 	const definition: CanonicalContextDefinition = {
@@ -71,15 +67,14 @@ describe("artifact schema", () => {
 		expect(validateJsonSchema(input)).toBe(false);
 	});
 
-	it.each([
-		{ schemaVersion: 1 },
-		{ renderingContract: "delimited-context" },
-		{ aliases: {} },
-	])("rejects removed artifact fields in both validators", (removedField) => {
-		const input = { ...artifact(), ...removedField };
-		expect(isCatalogArtifact(input)).toBe(false);
-		expect(validateJsonSchema(input)).toBe(false);
-	});
+	it.each([{ schemaVersion: 1 }, { renderingContract: "delimited-context" }, { aliases: {} }])(
+		"rejects removed artifact fields in both validators",
+		(removedField) => {
+			const input = { ...artifact(), ...removedField };
+			expect(isCatalogArtifact(input)).toBe(false);
+			expect(validateJsonSchema(input)).toBe(false);
+		},
+	);
 
 	it.each([
 		{
@@ -130,8 +125,10 @@ describe("artifact schema", () => {
 
 	it("rejects removed enforcement claims in compiled sections", () => {
 		const input = artifact();
-		const section = input.contexts["example.greeting"]!.locales["en-US"]!
-			.sections[0] as unknown as Record<string, unknown>;
+		const section = input.contexts["example.greeting"]!.locales["en-US"]!.sections[0] as unknown as Record<
+			string,
+			unknown
+		>;
 		section.enforcement = "host";
 		expect(isCatalogArtifact(input)).toBe(false);
 		expect(validateJsonSchema(input)).toBe(false);

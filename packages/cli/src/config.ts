@@ -1,19 +1,13 @@
-import type {
-	CanonicalSectionDefinition,
-	CanonicalVariableDefinition,
-} from "s11tnext/compiler";
+import type { CanonicalSectionDefinition, CanonicalVariableDefinition } from "s11tnext/compiler";
 
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
 
 export type S11tnextReleaseProfile = {
 	requiredLocales: string[];
 	requiredLocalesByKeyspace: Record<string, string[]>;
 };
 
-export type S11tnextSectionProfile = Pick<
-	CanonicalSectionDefinition,
-	"kind" | "severity" | "optimizable"
->;
+export type S11tnextSectionProfile = Pick<CanonicalSectionDefinition, "kind" | "severity" | "optimizable">;
 
 export type S11tnextProjectConfig = {
 	sourceDir: string;
@@ -118,10 +112,7 @@ function localeArray(value: unknown, file: string, path: Path): string[] {
 	return result;
 }
 
-function parseVariableProfiles(
-	input: unknown,
-	file: string,
-): Record<string, CanonicalVariableDefinition> {
+function parseVariableProfiles(input: unknown, file: string): Record<string, CanonicalVariableDefinition> {
 	if (input === undefined) return {};
 	const source = object(input, file, ["variable_profiles"]);
 	const result: Record<string, CanonicalVariableDefinition> = {};
@@ -143,31 +134,28 @@ function parseVariableProfiles(
 		const trust = string(profile.trust, file, [...path, "trust"]);
 		const placement = string(profile.placement, file, [...path, "placement"]);
 		const encoding = string(profile.encoding, file, [...path, "encoding"]);
-		if (!["string", "number", "boolean", "json"].includes(type)) issue(file, "Invalid variable type", [...path, "type"]);
+		if (!["string", "number", "boolean", "json"].includes(type))
+			issue(file, "Invalid variable type", [...path, "type"]);
 		if (!["trusted", "untrusted"].includes(trust)) issue(file, "Invalid variable trust", [...path, "trust"]);
-		if (!["inline", "delimited-context"].includes(placement)) issue(file, "Invalid variable placement", [...path, "placement"]);
+		if (!["inline", "delimited-context"].includes(placement))
+			issue(file, "Invalid variable placement", [...path, "placement"]);
 		if (!["raw", "delimited-text", "json-string", "json-value"].includes(encoding)) {
 			issue(file, "Invalid variable encoding", [...path, "encoding"]);
 		}
-		if (trust === "untrusted" && encoding === "raw") issue(file, "Untrusted variables cannot use raw encoding", [...path, "encoding"]);
+		if (trust === "untrusted" && encoding === "raw")
+			issue(file, "Untrusted variables cannot use raw encoding", [...path, "encoding"]);
 		if (trust === "untrusted" && placement !== "delimited-context") {
-			issue(
-				file,
-				"Untrusted variables require delimited-context placement",
-				[...path, "placement"],
-			);
+			issue(file, "Untrusted variables require delimited-context placement", [...path, "placement"]);
 		}
-		if (encoding === "raw" && type !== "string") issue(file, "raw encoding only supports string variables", [...path, "encoding"]);
-		if (encoding === "json-string" && type === "json") issue(file, "json-string does not support json variables", [...path, "encoding"]);
-		if (
-			encoding === "delimited-text" &&
-			(type !== "string" || placement !== "delimited-context")
-		) {
-			issue(
-				file,
-				"delimited-text requires a string variable with delimited-context placement",
-				[...path, "encoding"],
-			);
+		if (encoding === "raw" && type !== "string")
+			issue(file, "raw encoding only supports string variables", [...path, "encoding"]);
+		if (encoding === "json-string" && type === "json")
+			issue(file, "json-string does not support json variables", [...path, "encoding"]);
+		if (encoding === "delimited-text" && (type !== "string" || placement !== "delimited-context")) {
+			issue(file, "delimited-text requires a string variable with delimited-context placement", [
+				...path,
+				"encoding",
+			]);
 		}
 		result[name] = {
 			required: profile.required ?? true,
@@ -180,10 +168,7 @@ function parseVariableProfiles(
 	return result;
 }
 
-function parseSectionProfiles(
-	input: unknown,
-	file: string,
-): Record<string, S11tnextSectionProfile> {
+function parseSectionProfiles(input: unknown, file: string): Record<string, S11tnextSectionProfile> {
 	if (input === undefined) return {};
 	const source = object(input, file, ["section_profiles"]);
 	const result: Record<string, S11tnextSectionProfile> = {};
@@ -191,20 +176,10 @@ function parseSectionProfiles(
 		const path = ["section_profiles", name] satisfies Path;
 		if (!PROFILE_NAME_PATTERN.test(name)) issue(file, "Invalid section profile name", path);
 		const profile = object(value, file, path);
-		exactKeys(
-			profile,
-			["kind", "severity", "optimizable"],
-			["kind", "severity", "optimizable"],
-			file,
-			path,
-		);
+		exactKeys(profile, ["kind", "severity", "optimizable"], ["kind", "severity", "optimizable"], file, path);
 		const kind = string(profile.kind, file, [...path, "kind"]);
 		const severity = string(profile.severity, file, [...path, "severity"]);
-		if (
-			!["instruction", "runtime-fact", "tool-contract", "output-contract", "overlay"].includes(
-				kind,
-			)
-		) {
+		if (!["instruction", "runtime-fact", "tool-contract", "output-contract", "overlay"].includes(kind)) {
 			issue(file, "Invalid section kind", [...path, "kind"]);
 		}
 		if (!["must", "should", "may"].includes(severity)) {
@@ -222,10 +197,7 @@ function parseSectionProfiles(
 	return result;
 }
 
-export function parseProjectConfig(
-	input: unknown,
-	file = "s11tnext.config.toml",
-): S11tnextProjectConfig {
+export function parseProjectConfig(input: unknown, file = "s11tnext.config.toml"): S11tnextProjectConfig {
 	const source = object(input, file, []);
 	exactKeys(
 		source,
@@ -240,14 +212,7 @@ export function parseProjectConfig(
 			"section_profiles",
 			"generation",
 		],
-		[
-			"source_dir",
-			"out_dir",
-			"authoring",
-			"governance",
-			"keyspaces",
-			"release_profiles",
-		],
+		["source_dir", "out_dir", "authoring", "governance", "keyspaces", "release_profiles"],
 		file,
 		[],
 	);
@@ -256,17 +221,12 @@ export function parseProjectConfig(
 	const sourceLocale = locale(authoring.source_locale, file, ["authoring", "source_locale"]);
 	const governance = object(source.governance, file, ["governance"]);
 	exactKeys(governance, ["require_owner"], ["require_owner"], file, ["governance"]);
-	if (typeof governance.require_owner !== "boolean") issue(file, "Expected a boolean", ["governance", "require_owner"]);
+	if (typeof governance.require_owner !== "boolean")
+		issue(file, "Expected a boolean", ["governance", "require_owner"]);
 	let typeScriptIndent = "\t";
 	if (source.generation !== undefined) {
 		const generation = object(source.generation, file, ["generation"]);
-		exactKeys(
-			generation,
-			["typescript_indent"],
-			["typescript_indent"],
-			file,
-			["generation"],
-		);
+		exactKeys(generation, ["typescript_indent"], ["typescript_indent"], file, ["generation"]);
 		if (generation.typescript_indent === "tab") {
 			typeScriptIndent = "\t";
 		} else if (
@@ -277,11 +237,10 @@ export function parseProjectConfig(
 		) {
 			typeScriptIndent = " ".repeat(generation.typescript_indent);
 		} else {
-			issue(
-				file,
-				"typescript_indent must be \"tab\" or an integer from 1 to 8",
-				["generation", "typescript_indent"],
-			);
+			issue(file, 'typescript_indent must be "tab" or an integer from 1 to 8', [
+				"generation",
+				"typescript_indent",
+			]);
 		}
 	}
 
@@ -296,11 +255,7 @@ export function parseProjectConfig(
 			...(entry.source_locale === undefined
 				? {}
 				: {
-						sourceLocale: locale(
-							entry.source_locale,
-							file,
-							["keyspaces", prefix, "source_locale"],
-						),
+						sourceLocale: locale(entry.source_locale, file, ["keyspaces", prefix, "source_locale"]),
 					}),
 		};
 	}
@@ -308,37 +263,33 @@ export function parseProjectConfig(
 	const releaseSource = object(source.release_profiles, file, ["release_profiles"]);
 	const releaseProfiles: Record<string, S11tnextReleaseProfile> = {};
 	for (const [name, value] of Object.entries(releaseSource)) {
-		if (!PROFILE_NAME_PATTERN.test(name)) issue(file, "Invalid release profile name", ["release_profiles", name]);
+		if (!PROFILE_NAME_PATTERN.test(name))
+			issue(file, "Invalid release profile name", ["release_profiles", name]);
 		const entry = object(value, file, ["release_profiles", name]);
-		exactKeys(
-			entry,
-			["required_locales", "required_locales_by_keyspace"],
-			["required_locales"],
-			file,
-			["release_profiles", name],
-		);
-		const requiredLocales = localeArray(
-			entry.required_locales,
-			file,
-			["release_profiles", name, "required_locales"],
-		);
-		const resolvedLocales = requiredLocales.map((value) =>
-			value === "$source" ? sourceLocale : value,
-		);
+		exactKeys(entry, ["required_locales", "required_locales_by_keyspace"], ["required_locales"], file, [
+			"release_profiles",
+			name,
+		]);
+		const requiredLocales = localeArray(entry.required_locales, file, [
+			"release_profiles",
+			name,
+			"required_locales",
+		]);
+		const resolvedLocales = requiredLocales.map((value) => (value === "$source" ? sourceLocale : value));
 		if (new Set(resolvedLocales).size !== resolvedLocales.length) {
-			issue(
-				file,
-				"Locales must remain unique after resolving $source",
-				["release_profiles", name, "required_locales"],
-			);
+			issue(file, "Locales must remain unique after resolving $source", [
+				"release_profiles",
+				name,
+				"required_locales",
+			]);
 		}
 		const requiredLocalesByKeyspace: Record<string, string[]> = {};
 		if (entry.required_locales_by_keyspace !== undefined) {
-			const overrides = object(
-				entry.required_locales_by_keyspace,
-				file,
-				["release_profiles", name, "required_locales_by_keyspace"],
-			);
+			const overrides = object(entry.required_locales_by_keyspace, file, [
+				"release_profiles",
+				name,
+				"required_locales_by_keyspace",
+			]);
 			for (const [prefix, localesInput] of Object.entries(overrides)) {
 				const overridePath = [
 					"release_profiles",
@@ -354,31 +305,24 @@ export function parseProjectConfig(
 					.filter(
 						([keyspacePrefix, keyspace]) =>
 							keyspace.sourceLocale !== undefined &&
-							(prefix === keyspacePrefix ||
-								prefix.startsWith(`${keyspacePrefix}.`)),
+							(prefix === keyspacePrefix || prefix.startsWith(`${keyspacePrefix}.`)),
 					)
 					.sort(
-						([left], [right]) =>
-							right.length - left.length || left.localeCompare(right),
+						([left], [right]) => right.length - left.length || left.localeCompare(right),
 					)[0]?.[1].sourceLocale;
 				const resolvedOverrideLocales = overrideLocales.map((localeName) =>
-					localeName === "$source"
-						? (keyspaceSourceLocale ?? sourceLocale)
-						: localeName,
+					localeName === "$source" ? (keyspaceSourceLocale ?? sourceLocale) : localeName,
 				);
 				if (new Set(resolvedOverrideLocales).size !== resolvedOverrideLocales.length) {
-					issue(
-						file,
-						"Locales must remain unique after resolving $source",
-						overridePath,
-					);
+					issue(file, "Locales must remain unique after resolving $source", overridePath);
 				}
 				requiredLocalesByKeyspace[prefix] = overrideLocales;
 			}
 		}
 		releaseProfiles[name] = { requiredLocales, requiredLocalesByKeyspace };
 	}
-	if (Object.keys(releaseProfiles).length === 0) issue(file, "At least one release profile is required", ["release_profiles"]);
+	if (Object.keys(releaseProfiles).length === 0)
+		issue(file, "At least one release profile is required", ["release_profiles"]);
 
 	return {
 		sourceDir: relativeDirectory(source.source_dir, file, ["source_dir"]),

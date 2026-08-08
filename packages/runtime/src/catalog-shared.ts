@@ -18,9 +18,7 @@ export function templateFromSegments(segments: TemplateSegment[]): string {
 export function cloneJson<T extends JsonValue>(value: T): T {
 	if (value === null || typeof value !== "object") return value;
 	if (Array.isArray(value)) return value.map((item) => cloneJson(item)) as T;
-	return Object.fromEntries(
-		Object.entries(value).map(([key, item]) => [key, cloneJson(item)]),
-	) as T;
+	return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneJson(item)])) as T;
 }
 
 export function deepFreeze<T>(value: T): T {
@@ -50,7 +48,9 @@ export function renderSection(
 		.map((segment) => {
 			if (segment.type === "literal") return segment.value;
 			if (!Object.hasOwn(encodedValues, segment.name)) {
-				throw new S11tnextError("S11TNEXT_ARTIFACT_INVALID", "Variable segment is undeclared", [segment.name]);
+				throw new S11tnextError("S11TNEXT_ARTIFACT_INVALID", "Variable segment is undeclared", [
+					segment.name,
+				]);
 			}
 			return encodedValues[segment.name]!;
 		})

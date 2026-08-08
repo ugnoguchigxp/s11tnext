@@ -1,8 +1,6 @@
 import { answerQuestion } from "../src/rag.js";
-import {
-	FixtureLlmProvider,
-} from "../test-fixtures/fixture-llm-provider.js";
 import type { LlmFixtureKey } from "../test-fixtures/catalog.js";
+import { FixtureLlmProvider } from "../test-fixtures/fixture-llm-provider.js";
 
 type PromptfooProviderOptions = {
 	id?: string;
@@ -24,8 +22,7 @@ export default class S11tnextRagProvider {
 
 	constructor(options: PromptfooProviderOptions = {}) {
 		this.#id = options.id ?? "s11tnext-rag-fixture";
-		this.#fixtureKey =
-			options.config?.fixtureKey ?? "llmFixture.grounded-answer";
+		this.#fixtureKey = options.config?.fixtureKey ?? "llmFixture.grounded-answer";
 	}
 
 	id(): string {

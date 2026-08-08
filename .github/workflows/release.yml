@@ -93,7 +93,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-      - run: npm install --global npm@11.18.0 --ignore-scripts
+      - run: npm install --global npm@11.19.0 --ignore-scripts
       - name: Confirm bootstrap is creating brand-new packages
         if: inputs.channel == 'bootstrap'
         run: |
