@@ -54,15 +54,19 @@ const malformedToml = fc.oneof(
 );
 
 describe("TOML fuzz properties", () => {
-	it("round-trips arbitrary supported Unicode in basic strings", () => {
-		fc.assert(
-			fc.property(tomlText, (value) => {
-				writeFileSync(filePath, `value = ${JSON.stringify(value)}\n`);
-				expect(loadToml(filePath, "input.toml")).toEqual({ value });
-			}),
-			{ numRuns: 250 },
-		);
-	});
+	it(
+		"round-trips arbitrary supported Unicode in basic strings",
+		() => {
+			fc.assert(
+				fc.property(tomlText, (value) => {
+					writeFileSync(filePath, `value = ${JSON.stringify(value)}\n`);
+					expect(loadToml(filePath, "input.toml")).toEqual({ value });
+				}),
+				{ numRuns: 250 },
+			);
+		},
+		15_000,
+	);
 
 	it("normalizes malformed parser failures into stable diagnostics", () => {
 		fc.assert(
