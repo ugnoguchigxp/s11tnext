@@ -192,9 +192,16 @@ export function initProject(options: InitOptions = {}): InitResult {
 	try {
 		for (const output of outputs) {
 			const directory = dirname(output.path);
-			let firstCreated: string | undefined;
+			const missingDirectories: string[] = [];
+			let cursor = directory;
+			while (!pathEntryExists(cursor)) {
+				missingDirectories.push(cursor);
+				const parent = dirname(cursor);
+				if (parent === cursor) break;
+				cursor = parent;
+			}
 			try {
-				firstCreated = mkdirSync(directory, { recursive: true });
+				mkdirSync(directory, { recursive: true });
 			} catch (error) {
 				if (hasErrorCode(error, "EEXIST") || hasErrorCode(error, "ENOTDIR")) {
 					fail(
@@ -205,14 +212,7 @@ export function initProject(options: InitOptions = {}): InitResult {
 				}
 				throw error;
 			}
-			if (firstCreated !== undefined) {
-				let created = directory;
-				for (;;) {
-					createdDirectories.push(created);
-					if (created === firstCreated) break;
-					created = dirname(created);
-				}
-			}
+			createdDirectories.push(...missingDirectories);
 			let descriptor: number;
 			try {
 				descriptor = openSync(output.path, "wx", 0o644);
