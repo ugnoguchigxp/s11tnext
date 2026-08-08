@@ -23,6 +23,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           package-manager-cache: false
-      - run: npm install --global npm@11.18.0 --ignore-scripts
+      - run: npm install --global npm@11.19.0 --ignore-scripts
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm test:registry-consumer

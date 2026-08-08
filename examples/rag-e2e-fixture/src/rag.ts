@@ -1,10 +1,6 @@
 import type { PromptInvocation } from "s11tnext";
 
-import {
-	RAG_CORPUS,
-	retrieveDocuments,
-	type RagDocument,
-} from "./corpus.js";
+import { RAG_CORPUS, type RagDocument, retrieveDocuments } from "./corpus.js";
 import { renderRagPrompt } from "./prompt-catalog.js";
 
 export type LlmRequest = Readonly<{
@@ -45,10 +41,7 @@ function parseRagAnswer(value: string): {
 		parsed.answer.trim().length === 0 ||
 		!Array.isArray(parsed.citations) ||
 		parsed.citations.length === 0 ||
-		!parsed.citations.every(
-			(citation) =>
-				typeof citation === "string" && citation.trim().length > 0,
-		)
+		!parsed.citations.every((citation) => typeof citation === "string" && citation.trim().length > 0)
 	) {
 		throw new Error("The LLM response does not match the RAG answer contract.");
 	}

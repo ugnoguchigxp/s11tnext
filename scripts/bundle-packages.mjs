@@ -1,11 +1,4 @@
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	readdirSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
@@ -74,10 +67,7 @@ function pruneDeclarations(directory, entries) {
 		for (const imported of imports) {
 			const specifier = imported[1];
 			if (specifier === undefined) continue;
-			const declarationPath = resolve(
-				dirname(path),
-				specifier.replace(/\.js$/, ".d.ts"),
-			);
+			const declarationPath = resolve(dirname(path), specifier.replace(/\.js$/, ".d.ts"));
 			if (existsSync(declarationPath)) pending.push(declarationPath);
 		}
 	}
@@ -96,10 +86,7 @@ if (selectedPackage === "clean") {
 	process.exit(0);
 }
 
-const names =
-	selectedPackage === undefined
-		? Object.keys(packageBuilds)
-		: [selectedPackage];
+const names = selectedPackage === undefined ? Object.keys(packageBuilds) : [selectedPackage];
 
 for (const name of names) {
 	const options = packageBuilds[name];

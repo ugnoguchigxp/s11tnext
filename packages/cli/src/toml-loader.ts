@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { parse } from "smol-toml";
 
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
 import { fileSystemFailure } from "./filesystem-diagnostics.js";
 
 type TomlError = Error & { line?: number; column?: number };

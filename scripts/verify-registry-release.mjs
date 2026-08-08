@@ -6,9 +6,7 @@ import crossSpawn from "cross-spawn";
 const { sync: spawnSync } = crossSpawn;
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const report = JSON.parse(
-	readFileSync(resolve(repositoryRoot, ".artifacts/release-dry-run.json"), "utf8"),
-);
+const report = JSON.parse(readFileSync(resolve(repositoryRoot, ".artifacts/release-dry-run.json"), "utf8"));
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const attempts = 12;
 const retryDelayMilliseconds = 5_000;
@@ -39,8 +37,7 @@ function registryMetadataError(metadata, entry) {
 	if (
 		typeof metadata.dist?.attestations?.url !== "string" ||
 		metadata.dist.attestations.url.length === 0 ||
-		metadata.dist.attestations.provenance?.predicateType !==
-			"https://slsa.dev/provenance/v1"
+		metadata.dist.attestations.provenance?.predicateType !== "https://slsa.dev/provenance/v1"
 	) {
 		return `${entry.name}@${report.version} has no SLSA provenance attestation`;
 	}
@@ -64,11 +61,7 @@ for (const entry of report.packages) {
 		const result = npmJson(["view", entry.name, "dist-tags", "--json"]);
 		lastError = result.error;
 		const distTags = result.value;
-		if (
-			distTags !== null &&
-			report.channel === "canary" &&
-			distTags.latest !== entry.distTagsBefore.latest
-		) {
+		if (distTags !== null && report.channel === "canary" && distTags.latest !== entry.distTagsBefore.latest) {
 			throw new Error(`${entry.name} latest dist-tag changed during canary publish`);
 		}
 		if (distTags !== null && distTags[report.distTag] === report.version) {
@@ -107,4 +100,6 @@ for (const entry of report.packages) {
 	}
 }
 
-process.stdout.write(`Registry identity, integrity, signatures, and dist-tags verified for ${report.version}.\n`);
+process.stdout.write(
+	`Registry identity, integrity, signatures, and dist-tags verified for ${report.version}.\n`,
+);

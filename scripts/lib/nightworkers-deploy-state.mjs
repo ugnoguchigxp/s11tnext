@@ -5,8 +5,8 @@ import {
 	existsSync,
 	lstatSync,
 	mkdirSync,
-	readFileSync,
 	readdirSync,
+	readFileSync,
 	rmSync,
 	statSync,
 } from "node:fs";
@@ -111,10 +111,7 @@ export function assertManagedFilesRestored(target, state) {
 		throw new Error("Rollback did not restore vendor/s11tnext presence");
 	}
 	if (state.vendorExists) {
-		if (
-			state.vendorMode !== undefined &&
-			(statSync(vendor).mode & 0o777) !== state.vendorMode
-		) {
+		if (state.vendorMode !== undefined && (statSync(vendor).mode & 0o777) !== state.vendorMode) {
 			throw new Error("Rollback did not restore vendor/s11tnext mode");
 		}
 		const actual = JSON.stringify(snapshotTree(vendor));

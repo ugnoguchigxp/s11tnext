@@ -4,10 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { watchProject } from "../src/watch-command.js";
 
-type WatchListener = (
-	eventType: "rename" | "change",
-	filename: string | Buffer | null,
-) => void;
+type WatchListener = (eventType: "rename" | "change", filename: string | Buffer | null) => void;
 
 describe("watch command", () => {
 	it("watches only the config and source directories and refreshes changed sources", async () => {

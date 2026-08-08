@@ -12,11 +12,7 @@ export class S11tnextError extends Error {
 	readonly code: S11tnextErrorCode;
 	readonly path: Array<string | number>;
 
-	constructor(
-		code: S11tnextErrorCode,
-		message: string,
-		path: Array<string | number> = [],
-	) {
+	constructor(code: S11tnextErrorCode, message: string, path: Array<string | number> = []) {
 		super(message);
 		this.name = "S11tnextError";
 		this.code = code;

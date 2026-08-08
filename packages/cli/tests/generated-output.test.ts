@@ -12,10 +12,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import {
-	replaceGeneratedPair,
-	type GeneratedFileOperations,
-} from "../src/generated-output.js";
+import { type GeneratedFileOperations, replaceGeneratedPair } from "../src/generated-output.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -33,9 +30,7 @@ function fixture(): {
 	return { directory, catalogPath, typesPath };
 }
 
-function operations(
-	fail: { write?: number; rename?: number },
-): GeneratedFileOperations {
+function operations(fail: { write?: number; rename?: number }): GeneratedFileOperations {
 	let writes = 0;
 	let renames = 0;
 	return {

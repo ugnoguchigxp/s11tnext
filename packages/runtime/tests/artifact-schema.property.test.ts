@@ -5,10 +5,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { isCatalogArtifact } from "../src/artifact-schema.js";
-import {
-	compileCatalog,
-	type CanonicalContextDefinition,
-} from "../src/compiler.js";
+import { type CanonicalContextDefinition, compileCatalog } from "../src/compiler.js";
 
 function artifact() {
 	const definition: CanonicalContextDefinition = {
@@ -48,10 +45,7 @@ function artifact() {
 }
 
 const schema = JSON.parse(
-	readFileSync(
-		new URL("../../../schemas/s11tnext-artifact.schema.json", import.meta.url),
-		"utf8",
-	),
+	readFileSync(new URL("../../../schemas/s11tnext-artifact.schema.json", import.meta.url), "utf8"),
 ) as object;
 const validateJsonSchema = new Ajv2020({ strict: true }).compile(schema);
 
@@ -79,42 +73,10 @@ const mutationPaths = [
 	["contexts", "example.greeting", "locales"],
 	["contexts", "example.greeting", "locales", "en-US", "artifactHash"],
 	["contexts", "example.greeting", "locales", "en-US", "sections"],
-	[
-		"contexts",
-		"example.greeting",
-		"locales",
-		"en-US",
-		"sections",
-		"0",
-		"kind",
-	],
-	[
-		"contexts",
-		"example.greeting",
-		"locales",
-		"en-US",
-		"sections",
-		"0",
-		"severity",
-	],
-	[
-		"contexts",
-		"example.greeting",
-		"locales",
-		"en-US",
-		"sections",
-		"0",
-		"optimizable",
-	],
-	[
-		"contexts",
-		"example.greeting",
-		"locales",
-		"en-US",
-		"sections",
-		"0",
-		"omitIfEmpty",
-	],
+	["contexts", "example.greeting", "locales", "en-US", "sections", "0", "kind"],
+	["contexts", "example.greeting", "locales", "en-US", "sections", "0", "severity"],
+	["contexts", "example.greeting", "locales", "en-US", "sections", "0", "optimizable"],
+	["contexts", "example.greeting", "locales", "en-US", "sections", "0", "omitIfEmpty"],
 	["contexts", "example.greeting", "definitionHash"],
 	["contexts", "example.greeting", "releaseDigest"],
 	["catalogDigest"],
@@ -132,15 +94,11 @@ function setPath(target: unknown, path: readonly string[], value: unknown): void
 describe("artifact schema properties", () => {
 	it("keeps the handwritten validator aligned with JSON Schema under mutations", () => {
 		fc.assert(
-			fc.property(
-				fc.constantFrom(...mutationPaths),
-				fc.jsonValue(),
-				(path, value) => {
-					const input = structuredClone(artifact());
-					setPath(input, path, value);
-					expect(isCatalogArtifact(input)).toBe(validateJsonSchema(input));
-				},
-			),
+			fc.property(fc.constantFrom(...mutationPaths), fc.jsonValue(), (path, value) => {
+				const input = structuredClone(artifact());
+				setPath(input, path, value);
+				expect(isCatalogArtifact(input)).toBe(validateJsonSchema(input));
+			}),
 			{ numRuns: 500 },
 		);
 	});

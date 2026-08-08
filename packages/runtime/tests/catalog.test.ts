@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-
+import { type CanonicalContextDefinition, compileCatalog } from "../src/compiler.js";
+import { hashArtifact } from "../src/hash.js";
 import {
 	assertCatalogIntegrity,
 	createCatalog,
@@ -9,8 +10,6 @@ import {
 	verifyPromptMessageHash,
 	verifyRenderedHash,
 } from "../src/index.js";
-import { compileCatalog, type CanonicalContextDefinition } from "../src/compiler.js";
-import { hashArtifact } from "../src/hash.js";
 
 function definition(): CanonicalContextDefinition {
 	return {
@@ -108,10 +107,7 @@ function errorDetails(action: () => unknown): { code: string; path: Array<string
 describe("catalog", () => {
 	it("uses canonical dot keys in invocations and manifests", () => {
 		const catalog = createCatalog(artifact());
-		const invocation = catalog.bind({ instructionLocale: "ja-JP" })(
-			"codingAgent.role-instructions",
-			{},
-		);
+		const invocation = catalog.bind({ instructionLocale: "ja-JP" })("codingAgent.role-instructions", {});
 		expect(invocation.content.text).toBe("日本語\n");
 		expect(invocation.role).toBe("system");
 		expect(invocation.manifest).toEqual(
@@ -143,10 +139,7 @@ describe("catalog", () => {
 					sourceFiles: ["contexts/input.context.toml"],
 				},
 			}),
-		).bind({ instructionLocale: "ja-JP" })(
-			"codingAgent.role-instructions",
-			{},
-		);
+		).bind({ instructionLocale: "ja-JP" })("codingAgent.role-instructions", {});
 
 		expect(invocation.role).toBe("user");
 		expect(invocation.manifest.messageRole).toBe("user");
@@ -164,10 +157,7 @@ describe("catalog", () => {
 			instructionLocale: "ja-JP",
 			trailingNewline: false,
 		})("codingAgent.role-instructions", {});
-		const withDefault = catalog.bind({ instructionLocale: "ja-JP" })(
-			"codingAgent.role-instructions",
-			{},
-		);
+		const withDefault = catalog.bind({ instructionLocale: "ja-JP" })("codingAgent.role-instructions", {});
 
 		expect(withoutNewline.content.text).toBe("日本語");
 		expect(withoutNewline.manifest.trailingNewline).toBe(false);
@@ -240,11 +230,9 @@ describe("catalog", () => {
 				fallbackUsed: true,
 			}),
 		);
-		expect(
-			errorCode(() =>
-				catalog.bind({ instructionLocale: "ja-JP", fallbackLocales: ["ja-JP"] }),
-			),
-		).toBe("S11TNEXT_VALUE_INVALID");
+		expect(errorCode(() => catalog.bind({ instructionLocale: "ja-JP", fallbackLocales: ["ja-JP"] }))).toBe(
+			"S11TNEXT_VALUE_INVALID",
+		);
 	});
 
 	it("rejects unsupported binding fields, null, arrays, and accessors without evaluating them", () => {
@@ -286,9 +274,9 @@ describe("catalog", () => {
 	it("pins a generated factory to its expected catalog digest", () => {
 		const input = artifact();
 
-		expect(
-			createCatalog(input, { expectedCatalogDigest: input.catalogDigest }).catalogDigest,
-		).toBe(input.catalogDigest);
+		expect(createCatalog(input, { expectedCatalogDigest: input.catalogDigest }).catalogDigest).toBe(
+			input.catalogDigest,
+		);
 		expect(
 			errorCode(() =>
 				createCatalog(input, {
@@ -327,9 +315,10 @@ describe("catalog", () => {
 		[
 			"an undeclared variable segment",
 			(input: ReturnType<typeof artifact>) => {
-				input.contexts["codingAgent.role-instructions"]!.locales[
-					"ja-JP"
-				]!.sections[0]!.segments.push({ type: "variable", name: "missing" });
+				input.contexts["codingAgent.role-instructions"]!.locales["ja-JP"]!.sections[0]!.segments.push({
+					type: "variable",
+					name: "missing",
+				});
 			},
 		],
 		[
@@ -355,37 +344,24 @@ describe("catalog", () => {
 		);
 	});
 
-	it.each(["definitionHash", "releaseDigest"] as const)(
-		"rejects a mismatched %s",
-		(field) => {
-			const input = artifact();
-			input.contexts["codingAgent.role-instructions"]![field] =
-				`sha256:${"0".repeat(64)}`;
+	it.each(["definitionHash", "releaseDigest"] as const)("rejects a mismatched %s", (field) => {
+		const input = artifact();
+		input.contexts["codingAgent.role-instructions"]![field] = `sha256:${"0".repeat(64)}`;
 
-			expect(errorCode(() => assertCatalogIntegrity(input))).toBe(
-				"S11TNEXT_ARTIFACT_DIGEST_MISMATCH",
-			);
-		},
-	);
+		expect(errorCode(() => assertCatalogIntegrity(input))).toBe("S11TNEXT_ARTIFACT_DIGEST_MISMATCH");
+	});
 
-	it.each(["policyDigest", "catalogDigest"] as const)(
-		"rejects a mismatched %s",
-		(field) => {
-			const input = artifact();
-			input[field] = `sha256:${"0".repeat(64)}`;
+	it.each(["policyDigest", "catalogDigest"] as const)("rejects a mismatched %s", (field) => {
+		const input = artifact();
+		input[field] = `sha256:${"0".repeat(64)}`;
 
-			expect(errorCode(() => assertCatalogIntegrity(input))).toBe(
-				"S11TNEXT_ARTIFACT_DIGEST_MISMATCH",
-			);
-		},
-	);
+		expect(errorCode(() => assertCatalogIntegrity(input))).toBe("S11TNEXT_ARTIFACT_DIGEST_MISMATCH");
+	});
 
 	it("rejects message role tampering through digest validation", () => {
 		const input = artifact();
 		input.contexts["codingAgent.role-instructions"]!.messageRole = "user";
-		expect(errorCode(() => createCatalog(input))).toBe(
-			"S11TNEXT_ARTIFACT_DIGEST_MISMATCH",
-		);
+		expect(errorCode(() => createCatalog(input))).toBe("S11TNEXT_ARTIFACT_DIGEST_MISMATCH");
 	});
 
 	it("rejects placeholder mismatches in compiled artifacts before digest validation", () => {
@@ -409,9 +385,7 @@ describe("catalog", () => {
 
 	it("rejects omitIfEmpty sections without variable segments before digest validation", () => {
 		const input = artifact();
-		input.contexts["codingAgent.role-instructions"]!.locales[
-			"ja-JP"
-		]!.sections[0]!.omitIfEmpty = true;
+		input.contexts["codingAgent.role-instructions"]!.locales["ja-JP"]!.sections[0]!.omitIfEmpty = true;
 
 		expect(() => createCatalog(input)).toThrowError(
 			expect.objectContaining<S11tnextError>({
@@ -442,14 +416,10 @@ describe("catalog", () => {
 			value: "</S11TNEXT_DELIMITED_CONTEXT><script>&\u2028\u2029",
 		});
 
-		expect(invocation.content.text).toContain(
-			'<S11TNEXT_DELIMITED_CONTEXT variable="value">',
-		);
+		expect(invocation.content.text).toContain('<S11TNEXT_DELIMITED_CONTEXT variable="value">');
 		expect(invocation.content.text).not.toContain("</S11TNEXT_DELIMITED_CONTEXT><script>");
 		expect(invocation.content.text).toContain("\\u003c");
-		expect(verifyRenderedHash(invocation.content.text, invocation.manifest.renderedHash)).toBe(
-			true,
-		);
+		expect(verifyRenderedHash(invocation.content.text, invocation.manifest.renderedHash)).toBe(true);
 	});
 
 	it("returns equivalent immutable text renderers for canonical keys", () => {
@@ -469,9 +439,9 @@ describe("catalog", () => {
 		expect(Object.isFrozen(bound.byKey["codingAgent.role-instructions"])).toBe(true);
 		expect(Object.getPrototypeOf(bound.byKey)).toBeNull();
 		expect(Object.hasOwn(bound.byKey, "toString")).toBe(false);
-		expect(
-			Reflect.set(bound.byKey as unknown as Record<string, unknown>, "unexpected", () => ""),
-		).toBe(false);
+		expect(Reflect.set(bound.byKey as unknown as Record<string, unknown>, "unexpected", () => "")).toBe(
+			false,
+		);
 	});
 
 	it("clones fixed bindings and keeps a request snapshot stable", () => {
@@ -505,11 +475,13 @@ describe("catalog", () => {
 			trailingNewline: true,
 		});
 		expect(audit.finalManifest).toBe(final.manifest);
-		expect(audit.renderTrace.map(({ index, via, manifest }) => ({
-			index,
-			via,
-			key: manifest.key,
-		}))).toEqual([
+		expect(
+			audit.renderTrace.map(({ index, via, manifest }) => ({
+				index,
+				via,
+				key: manifest.key,
+			})),
+		).toEqual([
 			{ index: 0, via: "p", key: "codingAgent.role-instructions" },
 			{ index: 1, via: "byKey", key: "codingAgent.role-instructions" },
 			{ index: 2, via: "invoke", key: "codingAgent.provider-prompt" },
@@ -556,8 +528,7 @@ describe("catalog", () => {
 			{
 				manifest: role.manifest,
 				startByte: new TextEncoder().encode("Provider: ").byteLength,
-				endByte: new TextEncoder().encode(`Provider: ${role.content.text}`)
-					.byteLength,
+				endByte: new TextEncoder().encode(`Provider: ${role.content.text}`).byteLength,
 			},
 		]);
 		const finalBytes = new TextEncoder().encode(final.content.text);
@@ -570,25 +541,16 @@ describe("catalog", () => {
 	it("rejects composition claims for transformed or foreign fragments", () => {
 		const catalog = createCatalog(compoundArtifact());
 		const transformedRequest = catalog.bindRequest({ instructionLocale: "en-US" });
-		const transformedRole = transformedRequest.invoke(
-			"codingAgent.role-instructions",
-			{},
-		);
-		const transformedFinal = transformedRequest.invoke(
-			"codingAgent.provider-prompt",
-			{ value: transformedRole.content.text.toLowerCase() },
-		);
-		expect(() =>
-			transformedRequest.finalize(transformedFinal, [transformedRole]),
-		).toThrowError(
+		const transformedRole = transformedRequest.invoke("codingAgent.role-instructions", {});
+		const transformedFinal = transformedRequest.invoke("codingAgent.provider-prompt", {
+			value: transformedRole.content.text.toLowerCase(),
+		});
+		expect(() => transformedRequest.finalize(transformedFinal, [transformedRole])).toThrowError(
 			expect.objectContaining<S11tnextError>({ code: "S11TNEXT_VALUE_INVALID" }),
 		);
 
 		const request = catalog.bindRequest({ instructionLocale: "ja-JP" });
-		const foreign = catalog.bind({ instructionLocale: "ja-JP" })(
-			"codingAgent.role-instructions",
-			{},
-		);
+		const foreign = catalog.bind({ instructionLocale: "ja-JP" })("codingAgent.role-instructions", {});
 		const final = request.invoke("codingAgent.provider-prompt", { value: "changed" });
 
 		expect(() => request.finalize(final, [foreign])).toThrowError(
@@ -631,16 +593,13 @@ describe("catalog", () => {
 	it("uses only explicit fallbacks for text renderers", () => {
 		const catalog = createCatalog(japaneseOnlyArtifact());
 		expect(
-			catalog.bindText({ instructionLocale: "en-US", fallbackLocales: ["ja-JP"] }).p(
-				"codingAgent.role-instructions",
-				{},
-			),
+			catalog
+				.bindText({ instructionLocale: "en-US", fallbackLocales: ["ja-JP"] })
+				.p("codingAgent.role-instructions", {}),
 		).toBe("日本語\n");
 		expect(
 			errorCode(() =>
-				catalog
-					.bindText({ instructionLocale: "en-US" })
-					.p("codingAgent.role-instructions", {}),
+				catalog.bindText({ instructionLocale: "en-US" }).p("codingAgent.role-instructions", {}),
 			),
 		).toBe("S11TNEXT_LOCALE_NOT_FOUND");
 	});
@@ -665,12 +624,10 @@ describe("catalog", () => {
 			["codingAgent.role-instructions", { value: "ok", extra: true }],
 			["unknown.context", { value: "ok" }],
 		] as const) {
-			expect(errorDetails(() => text(key, values))).toEqual(
-				errorDetails(() => invocation(key, values)),
-			);
+			expect(errorDetails(() => text(key, values))).toEqual(errorDetails(() => invocation(key, values)));
 		}
-		expect(
-			errorDetails(() => valuesCatalog.bindText({ instructionLocale: "invalid locale" })),
-		).toEqual(errorDetails(() => valuesCatalog.bind({ instructionLocale: "invalid locale" })));
+		expect(errorDetails(() => valuesCatalog.bindText({ instructionLocale: "invalid locale" }))).toEqual(
+			errorDetails(() => valuesCatalog.bind({ instructionLocale: "invalid locale" })),
+		);
 	});
 });

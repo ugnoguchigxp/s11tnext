@@ -141,10 +141,7 @@ if (checkBudgets) {
 	);
 	const failures = Object.entries(budgets)
 		.filter(([name, maximum]) => measurements.sizes[name] > maximum)
-		.map(
-			([name, maximum]) =>
-				`${name}: ${measurements.sizes[name]} bytes > ${maximum} byte budget`,
-		);
+		.map(([name, maximum]) => `${name}: ${measurements.sizes[name]} bytes > ${maximum} byte budget`);
 	if (failures.length > 0) {
 		throw new Error(`Performance size budgets failed:\n${failures.join("\n")}`);
 	}

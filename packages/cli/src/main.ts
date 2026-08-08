@@ -2,9 +2,9 @@ import { COMPILER_VERSION } from "s11tnext/compiler";
 
 import { buildProject } from "./build-command.js";
 import { CliUsageError, takeCliOption } from "./cli-arguments.js";
-import { completionScript, type CompletionShell } from "./completion.js";
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
-import { initProject, type InitTemplate } from "./init-command.js";
+import { type CompletionShell, completionScript } from "./completion.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
+import { type InitTemplate, initProject } from "./init-command.js";
 import { inspectContext, inspectCoverage } from "./inspect-command.js";
 import { lintProject } from "./lint-command.js";
 
@@ -132,18 +132,11 @@ export function runCli(
 	},
 ): number {
 	const arguments_ = [...argumentsInput];
-	if (
-		arguments_.length === 0 ||
-		arguments_[0] === "--help" ||
-		arguments_[0] === "-h"
-	) {
+	if (arguments_.length === 0 || arguments_[0] === "--help" || arguments_[0] === "-h") {
 		io.stdout(HELP);
 		return 0;
 	}
-	if (
-		arguments_.length === 1 &&
-		(arguments_[0] === "--version" || arguments_[0] === "-V")
-	) {
+	if (arguments_.length === 1 && (arguments_[0] === "--version" || arguments_[0] === "-V")) {
 		io.stdout(`${COMPILER_VERSION}\n`);
 		return 0;
 	}
@@ -187,13 +180,8 @@ export function runCli(
 	try {
 		if (command === "completion") {
 			const shell = arguments_.shift();
-			if (
-				arguments_.length > 0 ||
-				(shell !== "bash" && shell !== "zsh" && shell !== "fish")
-			) {
-				throw new CliUsageError(
-					"completion requires exactly one shell: bash, zsh, or fish",
-				);
+			if (arguments_.length > 0 || (shell !== "bash" && shell !== "zsh" && shell !== "fish")) {
+				throw new CliUsageError("completion requires exactly one shell: bash, zsh, or fish");
 			}
 			io.stdout(completionScript(shell as CompletionShell));
 			return 0;
@@ -283,9 +271,7 @@ export function runCli(
 					releaseProfile,
 					cwd: io.cwd,
 				});
-				io.stdout(
-					format === "json" ? `${JSON.stringify(result, null, 2)}\n` : formatInspectHuman(result),
-				);
+				io.stdout(format === "json" ? `${JSON.stringify(result, null, 2)}\n` : formatInspectHuman(result));
 				return 0;
 			}
 			if (fallbackLocales.length > 0) {
@@ -300,9 +286,7 @@ export function runCli(
 				resolved,
 				cwd: io.cwd,
 			});
-			io.stdout(
-				format === "json" ? `${JSON.stringify(result, null, 2)}\n` : formatInspectHuman(result),
-			);
+			io.stdout(format === "json" ? `${JSON.stringify(result, null, 2)}\n` : formatInspectHuman(result));
 			return 0;
 		}
 		if (command === "watch") {
@@ -315,8 +299,8 @@ export function runCli(
 			return 2;
 		}
 		if (error instanceof S11tnextDiagnosticError) {
-			const usageDiagnostic = error.diagnostics.find((diagnostic) =>
-				diagnostic.code === "S11TNEXT_RELEASE_PROFILE_REQUIRED",
+			const usageDiagnostic = error.diagnostics.find(
+				(diagnostic) => diagnostic.code === "S11TNEXT_RELEASE_PROFILE_REQUIRED",
 			);
 			if (usageDiagnostic !== undefined) {
 				io.stderr(`${usageDiagnostic.message}\n\n${HELP}`);
@@ -329,7 +313,7 @@ export function runCli(
 			);
 			return 1;
 		}
-		const message = error instanceof Error ? error.stack ?? error.message : String(error);
+		const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
 		io.stderr(`S11TNEXT_INTERNAL_ERROR: ${message}\n`);
 		return 3;
 	}

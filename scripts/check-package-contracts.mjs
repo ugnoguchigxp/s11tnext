@@ -6,9 +6,7 @@ import crossSpawn from "cross-spawn";
 const { sync: spawnSync } = crossSpawn;
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactDirectory = resolve(repositoryRoot, ".artifacts/packages");
-const manifest = JSON.parse(
-	readFileSync(resolve(artifactDirectory, "manifest.json"), "utf8"),
-);
+const manifest = JSON.parse(readFileSync(resolve(artifactDirectory, "manifest.json"), "utf8"));
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const arguments_ = process.argv.slice(2);
 if (arguments_.some((argument) => argument !== "--update") || arguments_.length > 1) {
@@ -52,14 +50,7 @@ for (const entry of manifest.packages) {
 }
 
 for (const config of apiConfigs) {
-	run(pnpm, [
-		"exec",
-		"api-extractor",
-		"run",
-		"--config",
-		config,
-		...(updateApiReports ? ["--local"] : []),
-	]);
+	run(pnpm, ["exec", "api-extractor", "run", "--config", config, ...(updateApiReports ? ["--local"] : [])]);
 }
 
 process.stdout.write(

@@ -1,15 +1,11 @@
-import {
-	mkdtempSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import fc from "fast-check";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { S11tnextDiagnosticError } from "../src/diagnostics.js";
+import type { S11tnextDiagnosticError } from "../src/diagnostics.js";
 import { loadToml } from "../src/toml-loader.js";
 
 let directory: string;
@@ -25,23 +21,9 @@ afterAll(() => {
 });
 
 const tomlText = fc
-	.array(
-		fc.constantFrom(
-			"a",
-			"Z",
-			"0",
-			" ",
-			"\t",
-			"\n",
-			"\"",
-			"\\",
-			"日本語",
-			"🙂",
-			"\u2028",
-			"\u2029",
-		),
-		{ maxLength: 80 },
-	)
+	.array(fc.constantFrom("a", "Z", "0", " ", "\t", "\n", '"', "\\", "日本語", "🙂", "\u2028", "\u2029"), {
+		maxLength: 80,
+	})
 	.map((characters) => characters.join(""));
 
 const malformedToml = fc.oneof(
@@ -54,19 +36,15 @@ const malformedToml = fc.oneof(
 );
 
 describe("TOML fuzz properties", () => {
-	it(
-		"round-trips arbitrary supported Unicode in basic strings",
-		() => {
-			fc.assert(
-				fc.property(tomlText, (value) => {
-					writeFileSync(filePath, `value = ${JSON.stringify(value)}\n`);
-					expect(loadToml(filePath, "input.toml")).toEqual({ value });
-				}),
-				{ numRuns: 250 },
-			);
-		},
-		15_000,
-	);
+	it("round-trips arbitrary supported Unicode in basic strings", () => {
+		fc.assert(
+			fc.property(tomlText, (value) => {
+				writeFileSync(filePath, `value = ${JSON.stringify(value)}\n`);
+				expect(loadToml(filePath, "input.toml")).toEqual({ value });
+			}),
+			{ numRuns: 250 },
+		);
+	}, 15_000);
 
 	it("normalizes malformed parser failures into stable diagnostics", () => {
 		fc.assert(

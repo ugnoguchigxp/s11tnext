@@ -1,23 +1,11 @@
-export type JsonValue =
-	| null
-	| boolean
-	| number
-	| string
-	| JsonValue[]
-	| { [key: string]: JsonValue };
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 
-export type TemplateSegment =
-	| { type: "literal"; value: string }
-	| { type: "variable"; name: string };
+export type TemplateSegment = { type: "literal"; value: string } | { type: "variable"; name: string };
 
 export type S11tnextVariableType = "string" | "number" | "boolean" | "json";
 export type S11tnextVariableTrust = "trusted" | "untrusted";
 export type S11tnextVariablePlacement = "inline" | "delimited-context";
-export type S11tnextVariableEncoding =
-	| "raw"
-	| "delimited-text"
-	| "json-string"
-	| "json-value";
+export type S11tnextVariableEncoding = "raw" | "delimited-text" | "json-string" | "json-value";
 export type PromptMessageRole = "system" | "user";
 
 export type S11tnextCompiledVariable = {

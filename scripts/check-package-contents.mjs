@@ -1,20 +1,15 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { t as listTar, x as extractTar } from "tar";
+import { x as extractTar, t as listTar } from "tar";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactDirectory = resolve(repositoryRoot, ".artifacts/packages");
 const manifestPath = resolve(artifactDirectory, "manifest.json");
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-const requiredRootFiles = [
-	"package.json",
-	"README.md",
-	"LICENSE",
-	"NOTICE",
-];
+const requiredRootFiles = ["package.json", "README.md", "LICENSE", "NOTICE"];
 const expectedPackageNames = ["s11tnext", "s11tnext-cli"];
 const expectedRepositoryUrl = "git+https://github.com/ugnoguchigxp/s11tnext.git";
 const expectedBugsUrl = "https://github.com/ugnoguchigxp/s11tnext/issues";
@@ -42,10 +37,7 @@ function isAllowed(name, packageName) {
 	if (/^dist\/(?!.*(?:^|\/)\.\.?\/)[A-Za-z0-9_./-]+\.(?:js|d\.ts)$/.test(name)) {
 		return true;
 	}
-	return (
-		packageName === "s11tnext-cli" &&
-		(name === "bin/s11tnext.js" || cliSchemaFiles.includes(name))
-	);
+	return packageName === "s11tnext-cli" && (name === "bin/s11tnext.js" || cliSchemaFiles.includes(name));
 }
 
 function assertSafeTarPath(path) {
@@ -142,7 +134,8 @@ async function inspectPackage(entry) {
 		if (packageJson.name !== entry.name || packageJson.version !== entry.version) {
 			throw new Error(`${entry.name} packed manifest identity does not match package.json`);
 		}
-		if (packageJson.license !== "Apache-2.0") throw new Error(`${entry.name} has no Apache-2.0 license metadata`);
+		if (packageJson.license !== "Apache-2.0")
+			throw new Error(`${entry.name} has no Apache-2.0 license metadata`);
 		if (
 			packageJson.repository?.type !== "git" ||
 			packageJson.repository?.url !== expectedRepositoryUrl ||
@@ -156,7 +149,8 @@ async function inspectPackage(entry) {
 		if (packageJson.bugs?.url !== expectedBugsUrl) {
 			throw new Error(`${entry.name} has invalid bugs metadata`);
 		}
-		if (packageJson.types !== "./dist/index.d.ts") throw new Error(`${entry.name} has invalid types metadata`);
+		if (packageJson.types !== "./dist/index.d.ts")
+			throw new Error(`${entry.name} has invalid types metadata`);
 		if (packageJson.engines?.node !== "^22.0.0 || ^24.0.0") {
 			throw new Error(`${entry.name} has unsupported Node.js engine metadata`);
 		}
@@ -192,7 +186,10 @@ async function inspectPackage(entry) {
 			{ label: "macOS absolute path", pattern: /\/Users\// },
 			{ label: "Linux absolute path", pattern: /\/home\// },
 			{ label: "Windows absolute path", pattern: /[A-Za-z]:\\\\/ },
-			{ label: "current repository path", pattern: new RegExp(repositoryRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) },
+			{
+				label: "current repository path",
+				pattern: new RegExp(repositoryRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+			},
 		];
 		for (const path of filesUnder(packageRoot)) {
 			const content = readFileSync(path, "utf8");
@@ -224,19 +221,27 @@ const runtime = packageJsonByName.get("s11tnext");
 const cli = packageJsonByName.get("s11tnext-cli");
 if (runtime === undefined || cli === undefined) throw new Error("Runtime or CLI package is missing");
 if (runtime.version !== cli.version) throw new Error("Packed package versions differ");
-if (cli.dependencies?.["s11tnext"] !== runtime.version) {
+if (cli.dependencies?.s11tnext !== runtime.version) {
 	throw new Error(
-		`CLI must depend on packed runtime ${runtime.version}; found ${cli.dependencies?.["s11tnext"] ?? "missing"}`,
+		`CLI must depend on packed runtime ${runtime.version}; found ${cli.dependencies?.s11tnext ?? "missing"}`,
 	);
 }
-if (Object.keys(runtime.exports ?? {}).sort().join(",") !== ".,./compiler") {
+if (
+	Object.keys(runtime.exports ?? {})
+		.sort()
+		.join(",") !== ".,./compiler"
+) {
 	throw new Error("Runtime package exports are incomplete");
 }
 if (Object.keys(cli.exports ?? {}).join(",") !== ".") throw new Error("CLI package exports are incomplete");
 if (Object.keys(runtime.dependencies ?? {}).join(",") !== "@noble/hashes") {
 	throw new Error("Runtime package dependencies are unexpected");
 }
-if (Object.keys(cli.dependencies ?? {}).sort().join(",") !== "s11tnext,smol-toml") {
+if (
+	Object.keys(cli.dependencies ?? {})
+		.sort()
+		.join(",") !== "s11tnext,smol-toml"
+) {
 	throw new Error("CLI package dependencies are unexpected");
 }
 if (cli.bin?.s11tnext !== "./bin/s11tnext.js") throw new Error("CLI bin export is incorrect");

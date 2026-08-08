@@ -1,16 +1,12 @@
-import { watch, type FSWatcher } from "node:fs";
+import { type FSWatcher, watch } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 
 import { parseProjectConfig } from "./config.js";
 import { loadToml } from "./toml-loader.js";
 
-type WatchListener = (
-	eventType: "rename" | "change",
-	filename: string | Buffer | null,
-) => void;
+type WatchListener = (eventType: "rename" | "change", filename: string | Buffer | null) => void;
 
-type WatchHandle = Pick<FSWatcher, "close"> &
-	Partial<Pick<FSWatcher, "on" | "removeListener">>;
+type WatchHandle = Pick<FSWatcher, "close"> & Partial<Pick<FSWatcher, "on" | "removeListener">>;
 
 type WatchRegistration = {
 	handle: WatchHandle;
@@ -21,14 +17,10 @@ export type WatchCommandOptions = {
 	config?: string;
 	cwd: string;
 	signal: AbortSignal;
-	onChange(): boolean | void;
+	onChange(): boolean | undefined;
 	onError(error: unknown): void;
 	debounceMilliseconds?: number;
-	watchFactory?: (
-		path: string,
-		options: { recursive: boolean },
-		listener: WatchListener,
-	) => WatchHandle;
+	watchFactory?: (path: string, options: { recursive: boolean }, listener: WatchListener) => WatchHandle;
 	resolveSourceDirectory?: (configPath: string) => string;
 	schedule?: (callback: () => void, milliseconds: number) => ReturnType<typeof setTimeout>;
 	cancel?: (timer: ReturnType<typeof setTimeout>) => void;
@@ -57,11 +49,7 @@ export async function watchProject(options: WatchCommandOptions): Promise<void> 
 	let refreshSourceAfterBuild = false;
 	let rejectWatch: ((error: Error) => void) | undefined;
 
-	function register(
-		path: string,
-		recursive: boolean,
-		listener: WatchListener,
-	): WatchRegistration {
+	function register(path: string, recursive: boolean, listener: WatchListener): WatchRegistration {
 		const handle = watchFactory(path, { recursive }, listener);
 		const registration: WatchRegistration = {
 			handle,

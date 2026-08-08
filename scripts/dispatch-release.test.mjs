@@ -28,13 +28,7 @@ describe("release dispatch", () => {
 				packages: ["s11tnext", "s11tnext-cli"],
 				repository: "ugnoguchigxp/s11tnext",
 				confirmation: "publish-stable",
-				command: expect.arrayContaining([
-					"gh",
-					"workflow",
-					"run",
-					"release.yml",
-					"channel=stable",
-				]),
+				command: expect.arrayContaining(["gh", "workflow", "run", "release.yml", "channel=stable"]),
 			}),
 		);
 	});

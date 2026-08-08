@@ -1,17 +1,8 @@
-import { assertCatalogArtifact } from "./artifact-schema.js";
 import { assertCatalogIntegrity } from "./artifact-integrity.js";
-import type {
-	CanonicalContextDefinition,
-	CanonicalSectionDefinition,
-} from "./canonical-definition.js";
+import { assertCatalogArtifact } from "./artifact-schema.js";
+import type { CanonicalContextDefinition, CanonicalSectionDefinition } from "./canonical-definition.js";
 import { normalizeNewlines } from "./canonical-definition.js";
-import {
-	hashArtifact,
-	hashCatalog,
-	hashDefinition,
-	hashPolicy,
-	hashRelease,
-} from "./hash.js";
+import { hashArtifact, hashCatalog, hashDefinition, hashPolicy, hashRelease } from "./hash.js";
 import type {
 	S11tnextCatalogArtifact,
 	S11tnextCompiledContext,
@@ -76,9 +67,7 @@ export function tokenizeTemplate(text: string): TemplateSegment[] {
 	return segments;
 }
 
-function normalizedDefinition(
-	definition: CanonicalContextDefinition,
-): CanonicalContextDefinition {
+function normalizedDefinition(definition: CanonicalContextDefinition): CanonicalContextDefinition {
 	return {
 		key: definition.key,
 		owner: definition.owner,
@@ -115,10 +104,7 @@ function normalizedDefinition(
 	};
 }
 
-function compileSections(
-	sections: CanonicalSectionDefinition[],
-	locale: string,
-): S11tnextCompiledSection[] {
+function compileSections(sections: CanonicalSectionDefinition[], locale: string): S11tnextCompiledSection[] {
 	return sections.map((section) => {
 		const text = section.locales[locale];
 		if (text === undefined) {
@@ -178,9 +164,7 @@ export function compileCatalog(
 	canonicalDefinitions: readonly CanonicalContextDefinition[],
 	options: CompileCatalogOptions,
 ): S11tnextCatalogArtifact {
-	const definitions = [...canonicalDefinitions].sort((left, right) =>
-		compareCodeUnits(left.key, right.key),
-	);
+	const definitions = [...canonicalDefinitions].sort((left, right) => compareCodeUnits(left.key, right.key));
 	const contexts: Record<string, S11tnextCompiledContext> = {};
 	const releaseDigests: Record<string, string> = {};
 	const requiredLocales: Record<string, string[]> = {};

@@ -20,9 +20,7 @@ if (
 	arguments_.some((argument) => argument !== "--dry-run") ||
 	arguments_.filter((argument) => argument === "--dry-run").length > 1
 ) {
-	process.stderr.write(
-		"Usage: node scripts/dispatch-release.mjs bootstrap|canary|stable [--dry-run]\n",
-	);
+	process.stderr.write("Usage: node scripts/dispatch-release.mjs bootstrap|canary|stable [--dry-run]\n");
 	process.exit(2);
 }
 
@@ -47,9 +45,7 @@ function run(command, commandArguments) {
 function repositorySlug(value) {
 	const url = typeof value === "string" ? value : value?.url;
 	if (typeof url !== "string") return null;
-	const match = url.match(
-		/^(?:git\+)?https:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/,
-	);
+	const match = url.match(/^(?:git\+)?https:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/);
 	return match?.[1] ?? null;
 }
 
@@ -58,10 +54,7 @@ const cliPackage = readPackage("packages/cli/package.json");
 if (runtimePackage.name !== "s11tnext" || cliPackage.name !== "s11tnext-cli") {
 	throw new Error("Unexpected release package names");
 }
-if (
-	typeof runtimePackage.version !== "string" ||
-	runtimePackage.version !== cliPackage.version
-) {
+if (typeof runtimePackage.version !== "string" || runtimePackage.version !== cliPackage.version) {
 	throw new Error("Runtime and CLI package versions must match");
 }
 const repository = repositorySlug(runtimePackage.repository);
@@ -111,6 +104,4 @@ process.stdout.write(
 	`Dispatching ${channel} release for ${runtimePackage.name}@${runtimePackage.version} and ${cliPackage.name}@${cliPackage.version} from ${commit}.\n`,
 );
 run("gh", command);
-process.stdout.write(
-	`Release workflow dispatched. Follow it with: gh run watch --repo ${repository}\n`,
-);
+process.stdout.write(`Release workflow dispatched. Follow it with: gh run watch --repo ${repository}\n`);

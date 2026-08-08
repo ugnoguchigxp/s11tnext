@@ -12,13 +12,16 @@
   "bugs": {
     "url": "https://github.com/ugnoguchigxp/s11tnext/issues"
   },
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": "^22.0.0 || ^24.0.0"
   },
   "scripts": {
     "build": "tsc -b --pretty false && node scripts/bundle-packages.mjs",
     "clean": "tsc -b --clean && node scripts/bundle-packages.mjs clean",
+    "lint": "biome lint --error-on-warnings .",
+    "format": "biome check --write .",
+    "format:check": "biome check --error-on-warnings .",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:properties": "vitest run packages/runtime/tests/properties.test.ts packages/runtime/tests/artifact-schema.property.test.ts packages/cli/tests/toml-fuzz.test.ts",
@@ -53,22 +56,23 @@
     "release:dispatch:stable": "node scripts/dispatch-release.mjs stable",
     "governance:audit": "node scripts/audit-github-governance.mjs",
     "deploy:nightworkers-canary": "node scripts/deploy-nightworkers-canary.mjs",
-    "verify": "pnpm check:versions && pnpm typecheck && pnpm build && pnpm test:coverage && pnpm test:type-fixtures && pnpm test:no-node-builtins && pnpm test:browser-bundle && pnpm exec s11tnext --help",
+    "verify": "pnpm format:check && pnpm check:versions && pnpm typecheck && pnpm build && pnpm test:coverage && pnpm test:type-fixtures && pnpm test:no-node-builtins && pnpm test:browser-bundle && pnpm exec s11tnext --help",
     "verify:repository": "pnpm verify && pnpm test:examples && pnpm test:schema-drift && pnpm test:cross-node && pnpm test:packages && pnpm benchmark:check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
+    "@biomejs/biome": "2.5.7",
     "@changesets/cli": "2.31.1",
     "@microsoft/api-extractor": "7.58.12",
-    "@types/node": "26.1.1",
+    "@types/node": "26.2.0",
     "@vitest/coverage-v8": "4.1.10",
     "ajv": "8.20.0",
     "cross-spawn": "7.0.6",
     "esbuild": "0.28.1",
     "fast-check": "4.9.0",
-    "publint": "0.3.22",
+    "publint": "0.3.23",
     "s11tnext-cli": "workspace:*",
-    "tar": "7.5.20",
+    "tar": "7.5.22",
     "typescript": "7.0.2",
     "vitest": "4.1.10"
   }

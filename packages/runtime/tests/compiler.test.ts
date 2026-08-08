@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { compileCatalog, tokenizeTemplate, type CanonicalContextDefinition } from "../src/compiler.js";
-import { S11tnextError } from "../src/diagnostics.js";
+import { type CanonicalContextDefinition, compileCatalog, tokenizeTemplate } from "../src/compiler.js";
+import type { S11tnextError } from "../src/diagnostics.js";
 
 function definition(): CanonicalContextDefinition {
 	return {
@@ -99,9 +99,7 @@ describe("pure compiler", () => {
 		expect(userContext.definitionHash).not.toBe(systemContext.definitionHash);
 		expect(userContext.releaseDigest).not.toBe(systemContext.releaseDigest);
 		expect(userArtifact.catalogDigest).not.toBe(systemArtifact.catalogDigest);
-		expect(userContext.locales["ja-JP"]!.artifactHash).toBe(
-			systemContext.locales["ja-JP"]!.artifactHash,
-		);
+		expect(userContext.locales["ja-JP"]!.artifactHash).toBe(systemContext.locales["ja-JP"]!.artifactHash);
 	});
 
 	it("does not retain mutable variable definitions from compiler input", () => {
@@ -126,11 +124,7 @@ describe("pure compiler", () => {
 			releaseProfile: "production",
 			provenance: { configPath: "s11tnext.config.toml", sourceFiles: ["contexts/greeting.context.toml"] },
 		});
-		expect(Object.keys(artifact.contexts["example.greeting"]!.locales)).toEqual([
-			"en-US",
-			"fr-FR",
-			"ja-JP",
-		]);
+		expect(Object.keys(artifact.contexts["example.greeting"]!.locales)).toEqual(["en-US", "fr-FR", "ja-JP"]);
 	});
 
 	it("never emits an artifact that omits a required locale", () => {

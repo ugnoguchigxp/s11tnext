@@ -36,9 +36,5 @@ export function pathEntryExists(path: string): boolean {
 }
 
 function isMissingPathError(error: unknown): boolean {
-	return (
-		error instanceof Error &&
-		"code" in error &&
-		(error.code === "ENOENT" || error.code === "ENOTDIR")
-	);
+	return error instanceof Error && "code" in error && (error.code === "ENOENT" || error.code === "ENOTDIR");
 }

@@ -1,5 +1,4 @@
 export { assertCatalogArtifact, isCatalogArtifact } from "./artifact-schema.js";
-export { assertCatalogIntegrity, createCatalog } from "./catalog.js";
 export type {
 	BoundRequestCatalog,
 	BoundTextCatalog,
@@ -21,17 +20,17 @@ export type {
 	TextRenderer,
 	TextRendererObject,
 } from "./catalog.js";
+export { assertCatalogIntegrity, createCatalog } from "./catalog.js";
 export type { DefaultContract } from "./catalog-types.js";
+export type { S11tnextErrorCode } from "./diagnostics.js";
+export { S11tnextError } from "./diagnostics.js";
+export type { S11tnextDigest } from "./hash.js";
 export {
 	hashPromptMessage,
 	hashRendered,
 	verifyPromptMessageHash,
 	verifyRenderedHash,
 } from "./hash.js";
-export type { S11tnextDigest } from "./hash.js";
-export { S11tnextError } from "./diagnostics.js";
-export type { S11tnextErrorCode } from "./diagnostics.js";
-export { ARTIFACT_VERSION } from "./version.js";
 export type {
 	JsonValue,
 	PromptMessageRole,
@@ -48,3 +47,4 @@ export type {
 	S11tnextVariableType,
 	TemplateSegment,
 } from "./types.js";
+export { ARTIFACT_VERSION } from "./version.js";

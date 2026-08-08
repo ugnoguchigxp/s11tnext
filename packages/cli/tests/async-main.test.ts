@@ -95,9 +95,7 @@ describe("asynchronous CLI entry point", () => {
 
 	it("returns the initial build failure without starting a watcher", async () => {
 		const output = capture(temporaryDirectory());
-		expect(
-			await runCliAsync(["watch", "--release-profile", "production"], output.io),
-		).toBe(1);
+		expect(await runCliAsync(["watch", "--release-profile", "production"], output.io)).toBe(1);
 		expect(output.stderr()).toContain("S11TNEXT_FILE_NOT_FOUND");
 		expect(watchProject).not.toHaveBeenCalled();
 	});
@@ -109,15 +107,7 @@ describe("asynchronous CLI entry point", () => {
 		watchProject.mockResolvedValueOnce();
 		expect(
 			await runCliAsync(
-				[
-					"watch",
-					"--config",
-					"s11tnext.config.toml",
-					"--release-profile",
-					"production",
-					"--format",
-					"json",
-				],
+				["watch", "--config", "s11tnext.config.toml", "--release-profile", "production", "--format", "json"],
 				output.io,
 				{ signal: controller.signal },
 			),
@@ -143,17 +133,13 @@ describe("asynchronous CLI entry point", () => {
 		const directory = temporaryFixture();
 		const errorOutput = capture(directory);
 		watchProject.mockRejectedValueOnce(new Error("watcher failed"));
-		expect(
-			await runCliAsync(["watch", "--release-profile", "production"], errorOutput.io),
-		).toBe(3);
+		expect(await runCliAsync(["watch", "--release-profile", "production"], errorOutput.io)).toBe(3);
 		expect(errorOutput.stderr()).toContain("S11TNEXT_INTERNAL_ERROR: Error: watcher failed");
 		expect(watchProject.mock.calls[0]?.[0].signal).toBeInstanceOf(AbortSignal);
 
 		const valueOutput = capture(directory);
 		watchProject.mockRejectedValueOnce("watcher stopped");
-		expect(
-			await runCliAsync(["watch", "--release-profile", "production"], valueOutput.io),
-		).toBe(3);
+		expect(await runCliAsync(["watch", "--release-profile", "production"], valueOutput.io)).toBe(3);
 		expect(valueOutput.stderr()).toContain("S11TNEXT_INTERNAL_ERROR: watcher stopped");
 	});
 });

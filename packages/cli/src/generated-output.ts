@@ -1,10 +1,5 @@
 import { randomBytes } from "node:crypto";
-import {
-	existsSync,
-	renameSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
 export type GeneratedOutput = {
@@ -35,11 +30,7 @@ function sibling(path: string, kind: "tmp" | "bak"): string {
 	return resolve(path, `../.${basename(path)}.${process.pid}.${nonce}.${kind}`);
 }
 
-function cleanup(
-	paths: readonly string[],
-	operations: GeneratedFileOperations,
-	errors?: unknown[],
-): void {
+function cleanup(paths: readonly string[], operations: GeneratedFileOperations, errors?: unknown[]): void {
 	for (const path of paths) {
 		try {
 			operations.remove(path);
@@ -73,11 +64,7 @@ export function replaceGeneratedPair(
 		}
 	} catch (error) {
 		const rollbackErrors: unknown[] = [];
-		cleanup(
-			installed.map((index) => outputs[index]!.path).reverse(),
-			operations,
-			rollbackErrors,
-		);
+		cleanup(installed.map((index) => outputs[index]!.path).reverse(), operations, rollbackErrors);
 		for (const index of [...backedUp].reverse()) {
 			try {
 				operations.rename(backups[index]!, outputs[index]!.path);

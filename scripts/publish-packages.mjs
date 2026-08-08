@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
+import { fileURLToPath } from "node:url";
 import crossSpawn from "cross-spawn";
 
 const { sync: spawnSync } = crossSpawn;
@@ -53,10 +53,7 @@ const cliPackage = readPackage("packages/cli/package.json");
 if (runtimePackage.name !== "s11tnext" || cliPackage.name !== "s11tnext-cli") {
 	throw new Error("Expected packages s11tnext and s11tnext-cli");
 }
-if (
-	typeof runtimePackage.version !== "string" ||
-	runtimePackage.version !== cliPackage.version
-) {
+if (typeof runtimePackage.version !== "string" || runtimePackage.version !== cliPackage.version) {
 	throw new Error("Runtime and CLI package versions must match");
 }
 if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(runtimePackage.version)) {
@@ -93,11 +90,7 @@ if (!yes && (!process.stdin.isTTY || !process.stdout.isTTY)) {
 
 const status = execute("git", ["status", "--porcelain"], { capture: true });
 if (status !== "") throw new Error("Commit all changes before publishing");
-const npmUser = execute(
-	"npm",
-	["whoami", "--registry", "https://registry.npmjs.org/"],
-	{ capture: true },
-);
+const npmUser = execute("npm", ["whoami", "--registry", "https://registry.npmjs.org/"], { capture: true });
 process.stdout.write(`\nAuthenticated npm user: ${npmUser}\n`);
 process.stdout.write("Running release preflight. Nothing will be published during this step.\n\n");
 execute("pnpm", ["release:dry-run", "--", "--channel", "stable"]);
@@ -109,11 +102,7 @@ if (!Array.isArray(manifest.packages) || manifest.packages.length !== expectedPa
 }
 for (const [index, expected] of expectedPackages.entries()) {
 	const entry = manifest.packages[index];
-	if (
-		entry?.name !== expected.name ||
-		entry?.version !== version ||
-		entry?.file !== expected.file
-	) {
+	if (entry?.name !== expected.name || entry?.version !== version || entry?.file !== expected.file) {
 		throw new Error(`Unexpected package manifest entry at index ${index}`);
 	}
 	if (!existsSync(resolve(artifactDirectory, entry.file))) {
@@ -123,9 +112,7 @@ for (const [index, expected] of expectedPackages.entries()) {
 
 if (!yes) {
 	const prompt = createInterface({ input: process.stdin, output: process.stdout });
-	const answer = await prompt.question(
-		`\nPublish both packages as latest? Type ${version} to continue: `,
-	);
+	const answer = await prompt.question(`\nPublish both packages as latest? Type ${version} to continue: `);
 	prompt.close();
 	if (answer.trim() !== version) {
 		process.stdout.write("Publish cancelled. No package was published.\n");

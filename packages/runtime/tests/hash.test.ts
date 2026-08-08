@@ -7,8 +7,8 @@ import {
 	hashArtifact,
 	hashCatalog,
 	hashDefinition,
-	hashPromptMessage,
 	hashPolicy,
+	hashPromptMessage,
 	hashRelease,
 	hashRendered,
 	verifyPromptMessageHash,
@@ -23,9 +23,7 @@ type Golden = {
 	catalogDigest: string;
 };
 
-const golden = JSON.parse(
-	readFileSync(new URL("./golden/hash.json", import.meta.url), "utf8"),
-) as Golden;
+const golden = JSON.parse(readFileSync(new URL("./golden/hash.json", import.meta.url), "utf8")) as Golden;
 
 const definition: CanonicalContextDefinition = {
 	key: "example.greeting",
@@ -154,22 +152,14 @@ describe("hash contract", () => {
 		const digest = hashPromptMessage(value);
 
 		expect(verifyPromptMessageHash(value, digest)).toBe(true);
-		expect(
-			verifyPromptMessageHash({ role: "system", text: value.text }, digest),
-		).toBe(false);
-		expect(
-			verifyPromptMessageHash({ role: value.role, text: `${value.text}!` }, digest),
-		).toBe(false);
+		expect(verifyPromptMessageHash({ role: "system", text: value.text }, digest)).toBe(false);
+		expect(verifyPromptMessageHash({ role: value.role, text: `${value.text}!` }, digest)).toBe(false);
 	});
 
 	it("keeps rendered text and provider-message hash domains distinct", () => {
 		const text = "same payload";
 
-		expect(hashRendered(text)).not.toBe(
-			hashPromptMessage({ role: "system", text }),
-		);
-		expect(hashPromptMessage({ role: "system", text })).not.toBe(
-			hashPromptMessage({ role: "user", text }),
-		);
+		expect(hashRendered(text)).not.toBe(hashPromptMessage({ role: "system", text }));
+		expect(hashPromptMessage({ role: "system", text })).not.toBe(hashPromptMessage({ role: "user", text }));
 	});
 });

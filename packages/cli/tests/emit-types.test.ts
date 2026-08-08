@@ -1,7 +1,4 @@
-import {
-	compileCatalog,
-	type CanonicalContextDefinition,
-} from "s11tnext/compiler";
+import { type CanonicalContextDefinition, compileCatalog } from "s11tnext/compiler";
 import { describe, expect, it } from "vitest";
 
 import { emitTypes } from "../src/emit-types.js";
@@ -16,10 +13,34 @@ function definition(): CanonicalContextDefinition {
 		requiredLocales: ["en-US"],
 		variables: {
 			text: { required: true, type: "string", trust: "trusted", placement: "inline", encoding: "raw" },
-			count: { required: true, type: "number", trust: "trusted", placement: "inline", encoding: "json-value" },
-			enabled: { required: true, type: "boolean", trust: "trusted", placement: "inline", encoding: "json-value" },
-			payload: { required: true, type: "json", trust: "trusted", placement: "inline", encoding: "json-value" },
-			optionalText: { required: false, type: "string", trust: "trusted", placement: "inline", encoding: "raw" },
+			count: {
+				required: true,
+				type: "number",
+				trust: "trusted",
+				placement: "inline",
+				encoding: "json-value",
+			},
+			enabled: {
+				required: true,
+				type: "boolean",
+				trust: "trusted",
+				placement: "inline",
+				encoding: "json-value",
+			},
+			payload: {
+				required: true,
+				type: "json",
+				trust: "trusted",
+				placement: "inline",
+				encoding: "json-value",
+			},
+			optionalText: {
+				required: false,
+				type: "string",
+				trust: "trusted",
+				placement: "inline",
+				encoding: "raw",
+			},
 		},
 		sections: [
 			{
@@ -96,10 +117,7 @@ describe("generated type contract", () => {
 			releaseProfile: "test",
 			provenance: {
 				configPath: "s11tnext.config.toml",
-				sourceFiles: [
-					"contexts/types.context.toml",
-					"contexts/types/input.context.toml",
-				],
+				sourceFiles: ["contexts/types.context.toml", "contexts/types/input.context.toml"],
 			},
 		});
 

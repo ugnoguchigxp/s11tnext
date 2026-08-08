@@ -9,6 +9,19 @@ permissions:
   contents: read
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+
   verify:
     timeout-minutes: 15
     strategy:
@@ -93,17 +106,19 @@ jobs:
 
   required:
     if: always()
-    needs: [verify, coverage, package, performance]
+    needs: [quality, verify, coverage, package, performance]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: Require every CI job
         env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
           VERIFY_RESULT: ${{ needs.verify.result }}
           COVERAGE_RESULT: ${{ needs.coverage.result }}
           PACKAGE_RESULT: ${{ needs.package.result }}
           PERFORMANCE_RESULT: ${{ needs.performance.result }}
         run: |
+          test "$QUALITY_RESULT" = "success"
           test "$VERIFY_RESULT" = "success"
           test "$COVERAGE_RESULT" = "success"
           test "$PACKAGE_RESULT" = "success"

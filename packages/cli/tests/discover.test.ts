@@ -1,19 +1,10 @@
-import {
-	cpSync,
-	mkdtempSync,
-	mkdirSync,
-	readFileSync,
-	rmSync,
-	symlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
-
-import { loadProject } from "../src/discover.js";
 import { S11tnextDiagnosticError } from "../src/diagnostics.js";
+import { loadProject } from "../src/discover.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -31,15 +22,9 @@ afterEach(() => {
 describe("source discovery", () => {
 	it("discovers nested files in stable POSIX order", () => {
 		const directory = temporaryFixture("valid/content-first");
-		const source = readFileSync(
-			join(directory, "contexts/structuredGeneration/repair.context.toml"),
-			"utf8",
-		);
+		const source = readFileSync(join(directory, "contexts/structuredGeneration/repair.context.toml"), "utf8");
 		mkdirSync(join(directory, "contexts/structuredGeneration/a"));
-		writeFileSync(
-			join(directory, "contexts/structuredGeneration/a/second.context.toml"),
-			source,
-		);
+		writeFileSync(join(directory, "contexts/structuredGeneration/a/second.context.toml"), source);
 		const project = loadProject(undefined, directory, "production");
 		expect(project.sourceFiles).toEqual([
 			"contexts/structuredGeneration/a/second.context.toml",
@@ -49,10 +34,7 @@ describe("source discovery", () => {
 
 	it("adds TOML line and column to syntax diagnostics", () => {
 		const directory = temporaryFixture("valid/content-first");
-		writeFileSync(
-			join(directory, "contexts/structuredGeneration/repair.context.toml"),
-			"text = [",
-		);
+		writeFileSync(join(directory, "contexts/structuredGeneration/repair.context.toml"), "text = [");
 		try {
 			loadProject(undefined, directory, "production");
 		} catch (error) {

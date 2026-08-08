@@ -1,7 +1,7 @@
-import { compileCatalog } from "s11tnext/compiler";
 import type { S11tnextCatalogArtifact } from "s11tnext";
+import { compileCatalog } from "s11tnext/compiler";
 
-import { loadProject, type LoadedProject } from "./discover.js";
+import { type LoadedProject, loadProject } from "./discover.js";
 
 export type CompiledProject = LoadedProject & { artifact: S11tnextCatalogArtifact };
 
