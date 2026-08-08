@@ -55,7 +55,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION_HEAD="$(gh pr view changeset-release/main --json headRefOid --jq .headRefOid)"
+          VERSION_HEAD=""
+          for _ in {1..12}; do
+            read -r VERSION_BASE CANDIDATE_HEAD <<< "$(gh pr view changeset-release/main --json baseRefOid,headRefOid --jq '[.baseRefOid, .headRefOid] | @tsv')"
+            if [ "$VERSION_BASE" = "$GITHUB_SHA" ]; then
+              VERSION_HEAD="$CANDIDATE_HEAD"
+              break
+            fi
+            sleep 5
+          done
+          if [ -z "$VERSION_HEAD" ]; then
+            echo "Timed out waiting for the release PR to target $GITHUB_SHA." >&2
+            exit 1
+          fi
           for _ in {1..12}; do
             RUN="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$VERSION_HEAD&per_page=1" --jq '.workflow_runs[0] | [.id, .status, (.conclusion // "-")] | @tsv')"
             if [ -n "$RUN" ]; then
