@@ -14,7 +14,7 @@
   },
   "packageManager": "pnpm@10.24.0",
   "engines": {
-    "node": "^20.19.0 || ^22.0.0 || ^24.0.0"
+    "node": "^22.0.0 || ^24.0.0"
   },
   "scripts": {
     "build": "tsc -b --pretty false && node scripts/bundle-packages.mjs",

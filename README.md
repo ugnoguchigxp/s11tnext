@@ -60,7 +60,7 @@ S11tnextは、UI文言の翻訳ライブラリではありません。バック�
 
 ### 必要環境
 
-- Node.js `20.19.0`以降のNode 20、Node.js 22、またはNode.js 24
+- Node.js 22またはNode.js 24
 - ESMを使用するTypeScriptまたはJavaScriptプロジェクト
 - CLIを利用する場合は、プロジェクトのdevDependencyとして`s11tnext-cli`
 
@@ -386,7 +386,7 @@ S11tnext is currently in `0.x` pre-release development. The `s11tnext` Runtime a
 
 ### Requirements
 
-- Node.js 20.19 or newer in the Node 20 line, Node.js 22, or Node.js 24
+- Node.js 22 or Node.js 24
 - A TypeScript or JavaScript project using ESM
 - `s11tnext-cli` as a project devDependency when using the CLI
 

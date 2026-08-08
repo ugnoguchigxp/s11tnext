@@ -158,7 +158,7 @@ dependency from the same tarball instead of querying the npm registry.
 - S11tnext commit: \`${commit}\`
 - Runtime SHA-512: \`${runtime.sha512}\`
 - CLI SHA-512: \`${cli.sha512}\`
-- Supported Node.js versions: \`^20.19.0 || ^22.0.0 || ^24.0.0\`
+- Supported Node.js versions: \`^22.0.0 || ^24.0.0\`
 
 The tarballs passed S11tnext's release dry-run, package-content allowlist, isolated
 ESM consumer, type, runtime, CLI, and production dependency audit gates before
@@ -196,8 +196,8 @@ function verifyNightWorkers(
 		if (installed.name !== entry.name || installed.version !== version) {
 			throw new Error(`${entry.name}@${version} was not installed from the vendored tarball`);
 		}
-		if (installed.engines?.node !== "^20.19.0 || ^22.0.0 || ^24.0.0") {
-			throw new Error(`${entry.name} does not declare Node.js 20.19 support`);
+		if (installed.engines?.node !== "^22.0.0 || ^24.0.0") {
+			throw new Error(`${entry.name} does not declare the supported Node.js range`);
 		}
 	}
 	const lock = readFileSync(resolve(target, "bun.lock"), "utf8");

@@ -1,7 +1,7 @@
 # s11tnext-cli
 
 Loads TOML, validates sources, and emits deterministic catalog JSON and TypeScript.
-Supported Node.js releases are 20.19+, 22, and 24.
+Supported Node.js releases are 22 and 24.
 
 Published on npm; `0.x` compatibility is pre-release. Review the changelog when upgrading.
 

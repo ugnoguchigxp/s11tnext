@@ -159,7 +159,7 @@ Do not delete the bootstrap token until one OIDC canary succeeds. Do not retain 
    - a fresh install and CLI invocation succeed;
    - registry signatures and provenance verify;
    - the annotated `v<version>` tag and GitHub Release point to the published commit.
-   - the scheduled `Registry Consumer` workflow passes on Node 20.19, 22, and 24.
+   - the scheduled `Registry Consumer` workflow passes on Node 22 and 24.
 9. Set `S11TNEXT_STABLE_RELEASE_ENABLED=false` again if the gate is intended to remain one-shot.
 
 If npm publication succeeds but tag or GitHub Release creation fails, do not republish the immutable npm

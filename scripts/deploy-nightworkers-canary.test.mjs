@@ -108,7 +108,7 @@ function fakeDeploymentDependencies(target, failureCheckpoint) {
 				`${JSON.stringify({
 					name: entry.name,
 					version: entry.version,
-					engines: { node: "^20.19.0 || ^22.0.0 || ^24.0.0" },
+					engines: { node: "^22.0.0 || ^24.0.0" },
 				})}\n`,
 			);
 		}
