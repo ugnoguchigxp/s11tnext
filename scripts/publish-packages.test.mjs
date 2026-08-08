@@ -9,6 +9,7 @@ const scriptPath = resolve(repositoryRoot, "scripts/publish-packages.mjs");
 const packageVersion = JSON.parse(
 	readFileSync(resolve(repositoryRoot, "packages/runtime/package.json"), "utf8"),
 ).version;
+const isStableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(packageVersion);
 
 function execute(arguments_) {
 	return spawnSync(process.execPath, [scriptPath, ...arguments_], {
@@ -18,7 +19,7 @@ function execute(arguments_) {
 }
 
 describe("package publishing", () => {
-	it("prints a package.json-backed plan without contacting npm", () => {
+	it.runIf(isStableVersion)("prints a package.json-backed plan without contacting npm", () => {
 		const result = execute(["--plan"]);
 		expect(result.status).toBe(0);
 		expect(result.stdout).toContain(`version: ${packageVersion} (from package.json)`);
@@ -27,10 +28,18 @@ describe("package publishing", () => {
 		expect(result.stdout).toContain("npm publish --dry-run");
 	});
 
-	it("requires a terminal or explicit confirmation before preflight", () => {
+	it.runIf(isStableVersion)("requires a terminal or explicit confirmation before preflight", () => {
 		const result = execute([]);
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain("Interactive confirmation requires a terminal");
+	});
+
+	it.runIf(!isStableVersion)("rejects snapshot versions before stable publishing", () => {
+		const result = execute(["--plan"]);
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain(
+			`Stable publish requires a normal SemVer version; found ${packageVersion}`,
+		);
 	});
 
 	it("rejects ambiguous execution modes", () => {
