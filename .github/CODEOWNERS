@@ -1,0 +1,8 @@
+# Default ownership. Add a second maintainer before requiring two-person approval.
+* @ugnoguchigxp
+
+/packages/runtime/ @ugnoguchigxp
+/packages/cli/ @ugnoguchigxp
+/schemas/ @ugnoguchigxp
+/.github/workflows/ @ugnoguchigxp
+/docs/release/ @ugnoguchigxp

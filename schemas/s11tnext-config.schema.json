@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://s11tnext.dev/schemas/s11tnext-config.schema.json",
+  "title": "S11tnext project configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_dir",
+    "out_dir",
+    "authoring",
+    "governance",
+    "keyspaces",
+    "release_profiles"
+  ],
+  "properties": {
+    "source_dir": { "$ref": "#/$defs/relativeDirectory" },
+    "out_dir": { "$ref": "#/$defs/relativeDirectory" },
+    "authoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_locale"],
+      "properties": {
+        "source_locale": { "$ref": "#/$defs/locale" }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["require_owner"],
+      "properties": {
+        "require_owner": { "type": "boolean" }
+      }
+    },
+    "keyspaces": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/dottedName" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["owner"],
+        "properties": {
+          "owner": { "type": "string", "minLength": 1 },
+          "source_locale": { "$ref": "#/$defs/locale" }
+        }
+      }
+    },
+    "release_profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/profileName" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["required_locales"],
+        "properties": {
+          "required_locales": { "$ref": "#/$defs/localeArray" },
+          "required_locales_by_keyspace": {
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/dottedName" },
+            "additionalProperties": { "$ref": "#/$defs/localeArray" }
+          }
+        }
+      }
+    },
+    "variable_profiles": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/profileName" },
+      "additionalProperties": { "$ref": "#/$defs/variableProfile" }
+    },
+    "section_profiles": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/profileName" },
+      "additionalProperties": { "$ref": "#/$defs/sectionProfile" }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["typescript_indent"],
+      "properties": {
+        "typescript_indent": {
+          "oneOf": [
+            { "const": "tab" },
+            { "type": "integer", "minimum": 1, "maximum": 8 }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "relativeDirectory": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "(?:^/|^[A-Za-z]:[\\\\/]|(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)|\\u0000)"
+      }
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$"
+    },
+    "dottedName": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]*(?:\\.[A-Za-z][A-Za-z0-9_-]*)*$"
+    },
+    "profileName": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$"
+    },
+    "localeArray": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "oneOf": [
+          { "const": "$source" },
+          { "$ref": "#/$defs/locale" }
+        ]
+      }
+    },
+    "variableProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "trust", "placement", "encoding"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "type": { "enum": ["string", "number", "boolean", "json"] },
+        "trust": { "enum": ["trusted", "untrusted"] },
+        "placement": { "enum": ["inline", "delimited-context"] },
+        "encoding": { "enum": ["raw", "delimited-text", "json-string", "json-value"] }
+      },
+      "allOf": [
+        {
+          "not": {
+            "required": ["trust", "encoding"],
+            "properties": {
+              "trust": { "const": "untrusted" },
+              "encoding": { "const": "raw" }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["trust"],
+            "properties": { "trust": { "const": "untrusted" } }
+          },
+          "then": {
+            "required": ["placement"],
+            "properties": { "placement": { "const": "delimited-context" } }
+          }
+        },
+        {
+          "if": {
+            "required": ["encoding"],
+            "properties": { "encoding": { "const": "raw" } }
+          },
+          "then": {
+            "required": ["type"],
+            "properties": { "type": { "const": "string" } }
+          }
+        },
+        {
+          "if": {
+            "required": ["encoding"],
+            "properties": { "encoding": { "const": "json-string" } }
+          },
+          "then": {
+            "required": ["type"],
+            "properties": { "type": { "enum": ["string", "number", "boolean"] } }
+          }
+        },
+        {
+          "if": {
+            "required": ["encoding"],
+            "properties": { "encoding": { "const": "delimited-text" } }
+          },
+          "then": {
+            "required": ["type", "placement"],
+            "properties": {
+              "type": { "const": "string" },
+              "placement": { "const": "delimited-context" }
+            }
+          }
+        }
+      ]
+    },
+    "sectionProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "severity", "optimizable"],
+      "properties": {
+        "kind": {
+          "enum": ["instruction", "runtime-fact", "tool-contract", "output-contract", "overlay"]
+        },
+        "severity": { "enum": ["must", "should", "may"] },
+        "optimizable": { "type": "boolean" }
+      }
+    }
+  }
+}

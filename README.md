@@ -91,6 +91,18 @@ pnpm add --save-dev s11tnext-cli
 [3段階の導入ガイド](./docs/guides/adoption-paths.md)を使用してください。以下はuntrusted値と
 翻訳を含むProduction向けの開始例です。
 
+空のプロジェクトから始める場合は、最小構成またはProduction向け構成を安全に生成できます。
+既存ファイルは上書きされません。
+
+```sh
+npx s11tnext-cli init --template minimal
+# または
+npx s11tnext-cli init --template production --locale ja-JP --owner agent-platform
+```
+
+デフォルトではTaplo / Even Better TOML向けの`.taplo.toml`も生成され、インストール済みCLIに
+同梱されたJSON Schemaによる補完と検証が有効になります。
+
 #### 1. 設定ファイルを作る
 
 プロジェクトルートに`s11tnext.config.toml`を作成します。
@@ -216,9 +228,11 @@ JSONの読み込み方法はアプリケーション側で選べます。ファ�
 
 | コマンド | 用途 |
 | --- | --- |
+| `s11tnext init --template minimal\|production` | 上書きなしで設定、starter context、Taplo schema設定を生成します。 |
 | `s11tnext lint --release-profile development` | 設定、TOML、ロケール、変数ポリシーを検証します。ファイルは生成しません。 |
 | `s11tnext build --release-profile development` | JSONアーティファクトとTypeScriptファクトリを生成します。 |
 | `s11tnext build --check --release-profile development` | 生成物が最新かを、書き込みなしで確認します。 |
+| `s11tnext watch --release-profile development` | 設定またはcontextの変更を監視し、検証・再生成します。 |
 | `s11tnext inspect codingAgent.task --resolved --locale ja-JP --release-profile development` | 1件の正規キーと、必要に応じて解決後の内容を確認します。 |
 | `s11tnext inspect --coverage --locale en-US --fallback-locale ja-JP --release-profile development` | ロケールの直接一致、明示的フォールバック、欠落を確認します。 |
 | `s11tnext completion bash\|zsh\|fish` | シェル補完スクリプトを標準出力へ出します。 |
@@ -259,6 +273,7 @@ S11tnextはプロンプトインジェクション対策の一部を支援しま
 ### ドキュメントとサンプル
 
 - [Getting started](./docs/guides/getting-started.md)
+- [コード内promptからの段階的移行](./docs/guides/migrating-inline-prompts.md)
 - [3段階の導入ガイド](./docs/guides/adoption-paths.md)
 - [Backend integration](./docs/guides/backend-integration.md)
 - [Trust boundaries](./docs/guides/trust-boundaries.md)
@@ -271,19 +286,22 @@ S11tnextはプロンプトインジェクション対策の一部を支援しま
 - [Node.jsサンプル](./examples/node-basic)
 - [Minimalサンプル](./examples/minimal)
 - [RAG E2E fixtureサンプル](./examples/rag-e2e-fixture)
+- [デザインパートナープログラム](./docs/adoption/design-partner-program.md)
+- [サポートポリシー](./SUPPORT.md)
+- [メンテナ体制](./MAINTAINERS.md)
 - [npm公開手順](./docs/release/npm-publishing.md)
+- [GitHubガバナンス監査](./docs/release/github-governance.md)
 
 ### このリポジトリで開発する
 
 ```sh
 corepack enable
 pnpm install --frozen-lockfile
-pnpm verify
-pnpm test:packages
+pnpm verify:repository
 ```
 
-- `pnpm verify`はバージョン整合性、型チェック、テストとカバレッジ、ビルド、型fixture、Runtime境界、ブラウザbundle、CLI起動を検証します。
-- `pnpm test:packages`はRuntimeとCLIのtarballを作成し、公開ファイルを検査して、隔離されたESM consumerへインストールします。
+- `pnpm verify:repository`は通常検証に加えて、生成済みexample、schema drift、公開tarball、API契約、性能予算まで確認します。
+- 短い反復では`pnpm verify`、公開候補やmainへ入れる前は`pnpm verify:repository`を使用してください。
 
 主要ディレクトリ:
 
@@ -398,6 +416,17 @@ pnpm add --save-dev s11tnext-cli
 For a first run with one locale and no variables, use the [Minimal example](./examples/minimal) and
 [three-stage adoption guide](./docs/guides/adoption-paths.md). The following is a Production-oriented
 starting point with an untrusted value and a translation.
+
+For an empty project, safely scaffold either starter. Existing files are never overwritten.
+
+```sh
+npx s11tnext-cli init --template minimal
+# or
+npx s11tnext-cli init --template production --locale ja-JP --owner agent-platform
+```
+
+By default, this also creates `.taplo.toml` so Taplo and Even Better TOML can use the JSON Schemas shipped
+inside the installed CLI package for completion and validation.
 
 #### 1. Create the configuration
 
@@ -524,9 +553,11 @@ The host application chooses how to load the JSON. It can pass a value obtained 
 
 | Command | Purpose |
 | --- | --- |
+| `s11tnext init --template minimal\|production` | Create config, a starter context, and Taplo schema setup without overwriting files. |
 | `s11tnext lint --release-profile development` | Validate configuration, TOML, locales, and variable policy without writing files. |
 | `s11tnext build --release-profile development` | Generate the JSON artifact and TypeScript factory. |
 | `s11tnext build --check --release-profile development` | Check generated outputs without writing them. |
+| `s11tnext watch --release-profile development` | Validate and rebuild when config or context files change. |
 | `s11tnext inspect codingAgent.task --resolved --locale ja-JP --release-profile development` | Inspect one canonical key and, optionally, its resolved content. |
 | `s11tnext inspect --coverage --locale en-US --fallback-locale ja-JP --release-profile development` | Report direct, explicit fallback, and missing locale coverage. |
 | `s11tnext completion bash\|zsh\|fish` | Print a shell completion script to stdout. |
@@ -567,6 +598,7 @@ S11tnext supports one layer of prompt-injection defense, but it does not secure 
 ### Documentation and examples
 
 - [Getting started](./docs/guides/getting-started.md)
+- [Migrating inline prompts](./docs/guides/migrating-inline-prompts.md)
 - [Three-stage adoption guide](./docs/guides/adoption-paths.md)
 - [Backend integration](./docs/guides/backend-integration.md)
 - [Trust boundaries](./docs/guides/trust-boundaries.md)
@@ -579,19 +611,23 @@ S11tnext supports one layer of prompt-injection defense, but it does not secure 
 - [Node.js example](./examples/node-basic)
 - [Minimal example](./examples/minimal)
 - [RAG E2E fixture example](./examples/rag-e2e-fixture)
+- [Design-partner program](./docs/adoption/design-partner-program.md)
+- [Support policy](./SUPPORT.md)
+- [Maintainer governance](./MAINTAINERS.md)
 - [npm publishing runbook](./docs/release/npm-publishing.md)
+- [GitHub governance audit](./docs/release/github-governance.md)
 
 ### Developing this repository
 
 ```sh
 corepack enable
 pnpm install --frozen-lockfile
-pnpm verify
-pnpm test:packages
+pnpm verify:repository
 ```
 
-- `pnpm verify` checks version alignment, types, tests and coverage, builds, type fixtures, Runtime boundaries, the browser bundle, and CLI startup.
-- `pnpm test:packages` packs Runtime and CLI tarballs, checks their public files, and installs them into an isolated ESM consumer.
+- `pnpm verify:repository` adds generated-example freshness, schema drift, packed-package/API contracts,
+  and performance budgets to the normal checks.
+- Use `pnpm verify` for short iteration and `pnpm verify:repository` before main or a release candidate.
 
 Main directories:
 

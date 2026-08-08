@@ -1,16 +1,20 @@
 import { COMPILER_VERSION } from "s11tnext/compiler";
 
 import { buildProject } from "./build-command.js";
+import { CliUsageError, takeCliOption } from "./cli-arguments.js";
 import { completionScript, type CompletionShell } from "./completion.js";
 import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
+import { initProject, type InitTemplate } from "./init-command.js";
 import { inspectContext, inspectCoverage } from "./inspect-command.js";
 import { lintProject } from "./lint-command.js";
 
 export const HELP = `s11tnext - LLM prompt-message authoring and build tools
 
 Usage:
+  s11tnext init [--template minimal|production] [--locale en-US] [--keyspace app] [--owner team] [--release-profile development] [--no-editor] [--dry-run] [--format human|json]
   s11tnext lint --release-profile name [--config s11tnext.config.toml] [--format human|json]
   s11tnext build --release-profile name [--config s11tnext.config.toml] [--check] [--format human|json]
+  s11tnext watch --release-profile name [--config s11tnext.config.toml] [--format human|json]
   s11tnext inspect <key> --release-profile name [--resolved] [--locale ja-JP] [--config s11tnext.config.toml] [--format human|json]
   s11tnext inspect --coverage --locale en-US --release-profile name [--fallback-locale ja-JP] [--config s11tnext.config.toml] [--format human|json]
   s11tnext completion bash|zsh|fish
@@ -20,6 +24,11 @@ Usage:
 `;
 
 const COMMAND_HELP: Record<string, string> = {
+	init: `Usage: s11tnext init [--template minimal|production] [--locale locale] [--keyspace name] [--owner name] [--release-profile name] [--no-editor] [--dry-run] [--format human|json]
+
+Create a non-destructive starter project. Existing files are never overwritten. The default editor
+setup creates .taplo.toml associations for the JSON Schemas shipped with s11tnext-cli.
+`,
 	lint: `Usage: s11tnext lint --release-profile name [--config path] [--format human|json]
 
 Validate configuration, authored contexts, locale policy, and variable safety without writing files.
@@ -28,6 +37,11 @@ Validate configuration, authored contexts, locale policy, and variable safety wi
 
 Compile deterministic catalog.json and catalog.generated.ts outputs.
 --check verifies that both generated files are current without writing them.
+`,
+	watch: `Usage: s11tnext watch --release-profile name [--config path] [--format human|json]
+
+Build once, then rebuild when the project config or a .context.toml file changes. Validation failures
+are reported without stopping the watcher.
 `,
 	inspect: `Usage:
   s11tnext inspect <key> --release-profile name [--resolved] [--locale locale] [--config path] [--format human|json]
@@ -40,7 +54,7 @@ Inspect a canonical context or report direct, fallback, and missing locale cover
 Print a completion script to stdout. Evaluate it for the current shell or save it in the shell's
 completion directory.
 `,
-	help: `Usage: s11tnext help [lint|build|inspect|completion|version]
+	help: `Usage: s11tnext help [init|lint|build|watch|inspect|completion|version]
 
 Show global help or detailed help for one command.
 `,
@@ -56,17 +70,6 @@ export type CommandIo = {
 	cwd: string;
 };
 
-class CliUsageError extends Error {}
-
-function takeOption(arguments_: string[], name: string): string | undefined {
-	const index = arguments_.indexOf(name);
-	if (index === -1) return undefined;
-	const value = arguments_[index + 1];
-	if (value === undefined || value.startsWith("--")) throw new CliUsageError(`${name} requires a value`);
-	arguments_.splice(index, 2);
-	return value;
-}
-
 function takeFlag(arguments_: string[], name: string): boolean {
 	const index = arguments_.indexOf(name);
 	if (index === -1) return false;
@@ -77,7 +80,7 @@ function takeFlag(arguments_: string[], name: string): boolean {
 function takeOptions(arguments_: string[], name: string): string[] {
 	const values: string[] = [];
 	for (;;) {
-		const value = takeOption(arguments_, name);
+		const value = takeCliOption(arguments_, name);
 		if (value === undefined) return values;
 		values.push(value);
 	}
@@ -195,12 +198,41 @@ export function runCli(
 			io.stdout(completionScript(shell as CompletionShell));
 			return 0;
 		}
-		format = takeOption(arguments_, "--format") ?? "human";
+		format = takeCliOption(arguments_, "--format") ?? "human";
 		if (format !== "human" && format !== "json") {
 			throw new CliUsageError("--format must be human or json");
 		}
-		const config = takeOption(arguments_, "--config");
-		const releaseProfile = takeOption(arguments_, "--release-profile");
+		const config = takeCliOption(arguments_, "--config");
+		const releaseProfile = takeCliOption(arguments_, "--release-profile");
+		if (command === "init") {
+			if (config !== undefined) throw new CliUsageError("init does not accept --config");
+			const template = takeCliOption(arguments_, "--template") ?? "minimal";
+			if (template !== "minimal" && template !== "production") {
+				throw new CliUsageError("--template must be minimal or production");
+			}
+			const locale = takeCliOption(arguments_, "--locale");
+			const keyspace = takeCliOption(arguments_, "--keyspace");
+			const owner = takeCliOption(arguments_, "--owner");
+			const dryRun = takeFlag(arguments_, "--dry-run");
+			const noEditor = takeFlag(arguments_, "--no-editor");
+			if (arguments_.length > 0) throw new CliUsageError(`Unknown argument: ${arguments_[0]}`);
+			const result = initProject({
+				cwd: io.cwd,
+				template: template as InitTemplate,
+				dryRun,
+				editor: !noEditor,
+				...(locale === undefined ? {} : { locale }),
+				...(keyspace === undefined ? {} : { keyspace }),
+				...(owner === undefined ? {} : { owner }),
+				...(releaseProfile === undefined ? {} : { releaseProfile }),
+			});
+			io.stdout(
+				format === "json"
+					? `${JSON.stringify({ ok: true, ...result })}\n`
+					: `${dryRun ? "Would create" : "Created"} ${result.template} S11tnext project:\n${result.files.map((file) => `  ${file}`).join("\n")}\n\nNext: s11tnext build --release-profile ${result.releaseProfile}\n`,
+			);
+			return 0;
+		}
 		if (command === "lint") {
 			if (arguments_.length > 0) throw new CliUsageError(`Unknown argument: ${arguments_[0]}`);
 			const result = lintProject(config, io.cwd, releaseProfile);
@@ -230,7 +262,7 @@ export function runCli(
 			return 0;
 		}
 		if (command === "inspect") {
-			const locale = takeOption(arguments_, "--locale");
+			const locale = takeCliOption(arguments_, "--locale");
 			const fallbackLocales = takeOptions(arguments_, "--fallback-locale");
 			const coverage = takeFlag(arguments_, "--coverage");
 			const resolved = takeFlag(arguments_, "--resolved");
@@ -272,6 +304,9 @@ export function runCli(
 				format === "json" ? `${JSON.stringify(result, null, 2)}\n` : formatInspectHuman(result),
 			);
 			return 0;
+		}
+		if (command === "watch") {
+			throw new CliUsageError("watch requires the asynchronous CLI entry point");
 		}
 		throw new CliUsageError(`Unknown command: ${command ?? ""}`);
 	} catch (error) {

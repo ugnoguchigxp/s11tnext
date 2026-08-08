@@ -176,6 +176,7 @@ if (!allowLocal) {
 }
 
 execute(pnpm, ["verify"]);
+if (channel === "stable") execute(pnpm, ["test:examples"]);
 execute(pnpm, ["pack:all"]);
 execute(process.execPath, ["scripts/check-package-contents.mjs"]);
 execute(process.execPath, ["scripts/test-tarball-consumer.mjs"]);

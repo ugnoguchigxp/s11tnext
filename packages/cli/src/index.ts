@@ -8,6 +8,8 @@ export type {
 } from "./config.js";
 export { buildProject } from "./build-command.js";
 export type { BuildResult } from "./build-command.js";
+export { runCliAsync } from "./async-main.js";
+export type { AsyncCommandOptions } from "./async-main.js";
 export { compileProject } from "./compile-source.js";
 export type { CompiledProject } from "./compile-source.js";
 export { loadProject } from "./discover.js";

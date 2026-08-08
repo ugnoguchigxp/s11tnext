@@ -1,0 +1,39 @@
+name: Adoption report or design-partner interest
+description: Share a redacted production use case or volunteer for the design-partner program.
+title: "adoption: "
+labels: [help wanted]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include proprietary prompts, customer data, credentials, or internal repository links.
+  - type: dropdown
+    id: intent
+    attributes:
+      label: Intent
+      options:
+        - Share an adoption report
+        - Join the design-partner program
+        - Ask an adoption question
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Redacted use case
+      description: Include stack, approximate catalog size, locales, and governance needs.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome or success criteria
+      description: Examples include migration time, review time, stale-output failures, or audit use.
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Publication consent
+      options:
+        - label: The submitted text may remain public in this GitHub issue.
+          required: true

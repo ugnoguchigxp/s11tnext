@@ -1,4 +1,11 @@
-import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
@@ -25,6 +32,16 @@ const packageBuilds = {
 		external: ["s11tnext", "s11tnext/compiler", "smol-toml"],
 		outdir: resolve(repositoryRoot, "packages/cli/dist"),
 		platform: "node",
+		staticFiles: [
+			{
+				source: resolve(repositoryRoot, "schemas/s11tnext-authoring.schema.json"),
+				target: "schemas/s11tnext-authoring.schema.json",
+			},
+			{
+				source: resolve(repositoryRoot, "schemas/s11tnext-config.schema.json"),
+				target: "schemas/s11tnext-config.schema.json",
+			},
+		],
 	},
 };
 
@@ -72,6 +89,9 @@ function pruneDeclarations(directory, entries) {
 if (selectedPackage === "clean") {
 	for (const options of Object.values(packageBuilds)) {
 		removeJavaScriptFiles(options.outdir);
+		if (options.staticFiles !== undefined) {
+			rmSync(resolve(options.outdir, "schemas"), { recursive: true, force: true });
+		}
 	}
 	process.exit(0);
 }
@@ -86,8 +106,11 @@ for (const name of names) {
 	if (options === undefined) {
 		throw new TypeError(`Unknown package build: ${name}`);
 	}
-	const { declarationEntries, ...buildOptions } = options;
+	const { declarationEntries, staticFiles, ...buildOptions } = options;
 	removeJavaScriptFiles(options.outdir);
+	if (staticFiles !== undefined) {
+		rmSync(resolve(options.outdir, "schemas"), { recursive: true, force: true });
+	}
 	await build({
 		...buildOptions,
 		bundle: true,
@@ -99,4 +122,9 @@ for (const name of names) {
 		target: "es2022",
 	});
 	pruneDeclarations(options.outdir, declarationEntries);
+	for (const file of staticFiles ?? []) {
+		const target = resolve(options.outdir, file.target);
+		mkdirSync(dirname(target), { recursive: true });
+		writeFileSync(target, JSON.stringify(JSON.parse(readFileSync(file.source, "utf8"))));
+	}
 }

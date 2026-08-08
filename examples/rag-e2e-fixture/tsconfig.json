@@ -10,6 +10,7 @@
   "include": [
     "src/**/*.ts",
     "tests/**/*.ts",
+    "promptfoo/**/*.ts",
     "prompts/generated/catalog.json",
     "prompts/generated/catalog.generated.ts",
     "test-fixtures/generated/catalog.json",

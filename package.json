@@ -24,7 +24,7 @@
     "test:properties": "vitest run packages/runtime/tests/properties.test.ts packages/runtime/tests/artifact-schema.property.test.ts packages/cli/tests/toml-fuzz.test.ts",
     "test:coverage": "vitest run --coverage && pnpm check:critical-coverage",
     "check:critical-coverage": "node scripts/check-critical-coverage.mjs",
-    "test:schema-drift": "vitest run packages/runtime/tests/artifact-schema.test.ts packages/cli/tests/authoring-json-schema.test.ts",
+    "test:schema-drift": "vitest run packages/runtime/tests/artifact-schema.test.ts packages/cli/tests/authoring-json-schema.test.ts packages/cli/tests/config-json-schema.test.ts",
     "test:cross-node": "vitest run packages/runtime/tests/hash.test.ts",
     "test:no-node-builtins": "node scripts/check-runtime-boundary.mjs",
     "test:browser-bundle": "node scripts/check-browser-bundle.mjs",
@@ -51,8 +51,10 @@
     "release:dispatch:bootstrap": "node scripts/dispatch-release.mjs bootstrap",
     "release:dispatch:canary": "node scripts/dispatch-release.mjs canary",
     "release:dispatch:stable": "node scripts/dispatch-release.mjs stable",
+    "governance:audit": "node scripts/audit-github-governance.mjs",
     "deploy:nightworkers-canary": "node scripts/deploy-nightworkers-canary.mjs",
-    "verify": "pnpm check:versions && pnpm typecheck && pnpm build && pnpm test:coverage && pnpm test:type-fixtures && pnpm test:no-node-builtins && pnpm test:browser-bundle && pnpm exec s11tnext --help"
+    "verify": "pnpm check:versions && pnpm typecheck && pnpm build && pnpm test:coverage && pnpm test:type-fixtures && pnpm test:no-node-builtins && pnpm test:browser-bundle && pnpm exec s11tnext --help",
+    "verify:repository": "pnpm verify && pnpm test:examples && pnpm test:schema-drift && pnpm test:cross-node && pnpm test:packages && pnpm benchmark:check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

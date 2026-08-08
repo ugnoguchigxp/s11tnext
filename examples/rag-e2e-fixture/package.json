@@ -10,8 +10,9 @@
     "catalogs:build": "s11tnext build --config prompts/s11tnext.config.toml --release-profile example && s11tnext build --config test-fixtures/s11tnext.config.toml --release-profile e2e",
     "catalogs:check": "s11tnext build --check --config prompts/s11tnext.config.toml --release-profile example && s11tnext build --check --config test-fixtures/s11tnext.config.toml --release-profile e2e",
     "build": "pnpm catalogs:build && tsc -b --pretty false",
-    "test": "vitest run tests/rag.e2e.test.ts",
-    "check": "pnpm catalogs:check && tsc -b --pretty false && vitest run tests/rag.e2e.test.ts",
+    "test": "vitest run tests/rag.e2e.test.ts promptfoo/provider.test.ts",
+    "check": "pnpm catalogs:check && tsc -b --pretty false && pnpm test",
+    "eval:promptfoo": "pnpm build && pnpm dlx promptfoo@0.122.0 eval --no-cache -c promptfoo/promptfooconfig.yaml",
     "start": "node dist/test-fixtures/demo.js"
   },
   "dependencies": {
