@@ -1,3 +1,3 @@
 // Updated by scripts/sync-package-versions.mjs after Changesets changes package versions.
-export const COMPILER_VERSION = "0.1.3";
+export const COMPILER_VERSION: string = "0.1.3";
 export const ARTIFACT_VERSION = 2 as const;
