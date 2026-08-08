@@ -2,6 +2,7 @@ import { type FSWatcher, watch } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 
 import { parseProjectConfig } from "./config.js";
+import { resolvesWithin } from "./path-safety.js";
 import { loadToml } from "./toml-loader.js";
 
 type WatchListener = (eventType: "rename" | "change", filename: string | Buffer | null) => void;
@@ -26,11 +27,15 @@ export type WatchCommandOptions = {
 	cancel?: (timer: ReturnType<typeof setTimeout>) => void;
 };
 
-function projectSourceDirectory(configPath: string, cwd: string): string {
+export function resolveProjectSourceDirectory(configPath: string, cwd: string): string {
 	const configDirectory = dirname(configPath);
 	const displayFile = relative(cwd, configPath) || "s11tnext.config.toml";
 	const config = parseProjectConfig(loadToml(configPath, displayFile), displayFile);
-	return resolve(configDirectory, config.sourceDir);
+	const sourceDirectory = resolve(configDirectory, config.sourceDir);
+	if (!resolvesWithin(configDirectory, sourceDirectory)) {
+		throw new Error("Configured source_dir resolves outside the config directory");
+	}
+	return sourceDirectory;
 }
 
 export async function watchProject(options: WatchCommandOptions): Promise<void> {
@@ -39,7 +44,7 @@ export async function watchProject(options: WatchCommandOptions): Promise<void> 
 	const configDirectory = dirname(configPath);
 	const watchFactory = options.watchFactory ?? watch;
 	const resolveSourceDirectory =
-		options.resolveSourceDirectory ?? ((path: string) => projectSourceDirectory(path, options.cwd));
+		options.resolveSourceDirectory ?? ((path: string) => resolveProjectSourceDirectory(path, options.cwd));
 	const schedule = options.schedule ?? setTimeout;
 	const cancel = options.cancel ?? clearTimeout;
 	const registrations = new Set<WatchRegistration>();
@@ -84,11 +89,20 @@ export async function watchProject(options: WatchCommandOptions): Promise<void> 
 			timer = undefined;
 			const shouldRefreshSource = refreshSourceAfterBuild;
 			refreshSourceAfterBuild = false;
+			let succeeded: boolean;
 			try {
-				const succeeded = options.onChange() !== false;
-				if (succeeded && shouldRefreshSource) refreshSourceWatcher();
+				succeeded = options.onChange() !== false;
 			} catch (error) {
 				options.onError(error);
+				return;
+			}
+			if (!shouldRefreshSource) return;
+			try {
+				refreshSourceWatcher();
+			} catch (error) {
+				// A failed build already reports invalid config and source diagnostics.
+				// Only surface a resolver failure that contradicts a successful build.
+				if (succeeded) options.onError(error);
 			}
 		}, options.debounceMilliseconds ?? 75);
 	}

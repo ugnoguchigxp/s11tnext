@@ -1,12 +1,48 @@
 import type { FSWatcher } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { watchProject } from "../src/watch-command.js";
+import { resolveProjectSourceDirectory, watchProject } from "../src/watch-command.js";
 
 type WatchListener = (eventType: "rename" | "change", filename: string | Buffer | null) => void;
 
+const temporaryDirectories: string[] = [];
+
+function temporaryFixture(): string {
+	const directory = mkdtempSync(join(tmpdir(), "s11tnext-watch-"));
+	temporaryDirectories.push(directory);
+	cpSync(new URL("../../../fixtures/valid/content-first", import.meta.url), directory, { recursive: true });
+	return directory;
+}
+
+afterEach(() => {
+	for (const directory of temporaryDirectories.splice(0)) {
+		rmSync(directory, { recursive: true, force: true });
+	}
+});
+
 describe("watch command", () => {
+	it.skipIf(process.platform === "win32")(
+		"resolves only source directories contained by the config directory",
+		() => {
+			const directory = temporaryFixture();
+			const outside = temporaryFixture();
+			const configPath = join(directory, "s11tnext.config.toml");
+			expect(resolveProjectSourceDirectory(configPath, directory)).toBe(join(directory, "contexts"));
+			symlinkSync(join(outside, "contexts"), join(directory, "linked-contexts"), "dir");
+			writeFileSync(
+				configPath,
+				readFileSync(configPath, "utf8").replace('source_dir = "contexts"', 'source_dir = "linked-contexts"'),
+			);
+			expect(() => resolveProjectSourceDirectory(configPath, directory)).toThrow(
+				"source_dir resolves outside the config directory",
+			);
+		},
+	);
+
 	it("watches only the config and source directories and refreshes changed sources", async () => {
 		const listeners = new Map<string, WatchListener>();
 		const closes = new Map<string, ReturnType<typeof vi.fn>>();
@@ -93,8 +129,38 @@ describe("watch command", () => {
 		await expect(promise).resolves.toBeUndefined();
 	});
 
-	it("keeps the current source watcher when a changed config does not build", async () => {
+	it("does not reparse unchanged config after a successful source rebuild", async () => {
+		let sourceListener: WatchListener | undefined;
+		const resolveSourceDirectory = vi.fn(() => "/project/contexts");
+		const onChange = vi.fn(() => true);
+		const controller = new AbortController();
+		const promise = watchProject({
+			cwd: "/project",
+			signal: controller.signal,
+			onChange,
+			onError: vi.fn(),
+			resolveSourceDirectory,
+			watchFactory: (path, _options, listener) => {
+				if (path === "/project/contexts") sourceListener = listener;
+				return { close: vi.fn() };
+			},
+			schedule: (callback) => {
+				callback();
+				return 1 as unknown as ReturnType<typeof setTimeout>;
+			},
+		});
+
+		sourceListener?.("change", "app/greeting.context.toml");
+		expect(onChange).toHaveBeenCalledOnce();
+		expect(resolveSourceDirectory).toHaveBeenCalledOnce();
+		controller.abort();
+		await expect(promise).resolves.toBeUndefined();
+	});
+
+	it("keeps the current source watcher when a changed config cannot be parsed", async () => {
 		let configListener: WatchListener | undefined;
+		let resolveCalls = 0;
+		const onError = vi.fn();
 		const watchFactory = vi.fn((path: string, _options: { recursive: boolean }, listener: WatchListener) => {
 			if (path === "/project") configListener = listener;
 			return { close: vi.fn() };
@@ -104,8 +170,12 @@ describe("watch command", () => {
 			cwd: "/project",
 			signal: controller.signal,
 			onChange: () => false,
-			onError: vi.fn(),
-			resolveSourceDirectory: () => "/project/contexts",
+			onError,
+			resolveSourceDirectory: () => {
+				resolveCalls += 1;
+				if (resolveCalls === 1) return "/project/contexts";
+				throw new Error("invalid config");
+			},
 			watchFactory,
 			schedule: (callback) => {
 				callback();
@@ -115,6 +185,75 @@ describe("watch command", () => {
 
 		configListener?.("change", null);
 		expect(watchFactory).toHaveBeenCalledTimes(2);
+		expect(onError).not.toHaveBeenCalled();
+		controller.abort();
+		await expect(promise).resolves.toBeUndefined();
+	});
+
+	it("moves to a valid new source directory while its first build is failing", async () => {
+		let configListener: WatchListener | undefined;
+		let sourceDirectory = "/project/contexts";
+		const closes = new Map<string, ReturnType<typeof vi.fn>>();
+		const watchFactory = vi.fn((path: string, _options: { recursive: boolean }, listener: WatchListener) => {
+			if (path === "/project") configListener = listener;
+			const close = vi.fn();
+			closes.set(path, close);
+			return { close };
+		});
+		const controller = new AbortController();
+		const promise = watchProject({
+			cwd: "/project",
+			signal: controller.signal,
+			onChange: () => false,
+			onError: vi.fn(),
+			resolveSourceDirectory: () => sourceDirectory,
+			watchFactory,
+			schedule: (callback) => {
+				callback();
+				return 1 as unknown as ReturnType<typeof setTimeout>;
+			},
+		});
+
+		sourceDirectory = "/project/new-contexts";
+		configListener?.("change", "s11tnext.config.toml");
+		expect(watchFactory).toHaveBeenLastCalledWith(
+			"/project/new-contexts",
+			{ recursive: true },
+			expect.any(Function),
+		);
+		expect(closes.get("/project/contexts")).toHaveBeenCalledOnce();
+		controller.abort();
+		await expect(promise).resolves.toBeUndefined();
+	});
+
+	it("reports config reparse failures that contradict a successful rebuild", async () => {
+		let configListener: WatchListener | undefined;
+		let resolveCalls = 0;
+		const expected = new Error("config changed during rebuild");
+		const onError = vi.fn();
+		const controller = new AbortController();
+		const promise = watchProject({
+			cwd: "/project",
+			signal: controller.signal,
+			onChange: () => true,
+			onError,
+			resolveSourceDirectory: () => {
+				resolveCalls += 1;
+				if (resolveCalls === 1) return "/project/contexts";
+				throw expected;
+			},
+			watchFactory: (path, _options, listener) => {
+				if (path === "/project") configListener = listener;
+				return { close: vi.fn() };
+			},
+			schedule: (callback) => {
+				callback();
+				return 1 as unknown as ReturnType<typeof setTimeout>;
+			},
+		});
+
+		configListener?.("change", "s11tnext.config.toml");
+		expect(onError).toHaveBeenCalledWith(expected);
 		controller.abort();
 		await expect(promise).resolves.toBeUndefined();
 	});
