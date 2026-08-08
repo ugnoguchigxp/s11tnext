@@ -1,0 +1,19 @@
+description: S11tnext deterministic RAG evaluation
+
+prompts:
+  - "{{question}}"
+
+providers:
+  - id: file://provider.ts
+    label: S11tnext RAG fixture
+    config:
+      fixtureKey: llmFixture.grounded-answer
+
+tests:
+  - description: Produces a grounded answer with the retrieved document citation
+    vars:
+      question: S11tnextはLLMプロンプトをどのように管理しますか？
+    assert:
+      - type: is-json
+      - type: javascript
+        value: file://assertions.cjs:hasGroundedCitation

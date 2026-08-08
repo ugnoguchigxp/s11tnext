@@ -1,9 +1,17 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+	cpSync,
+	existsSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { runCliAsync } from "../src/async-main.js";
 import { runCli, type CommandIo } from "../src/main.js";
 
 const runtimePackage = JSON.parse(
@@ -75,6 +83,84 @@ describe("CLI", () => {
 			expect(completion.stdout).toContain("s11tnext");
 		}
 		expect(execute(["completion", "powershell"], directory).code).toBe(2);
+	});
+
+	it("previews and creates starter projects without overwriting", () => {
+		const directory = mkdtempSync(join(tmpdir(), "s11tnext-cli-init-"));
+		temporaryDirectories.push(directory);
+		const preview = execute(
+			[
+				"init",
+				"--template",
+				"production",
+				"--locale",
+				"ja-JP",
+				"--owner",
+				"agent-team",
+				"--release-profile",
+				"production",
+				"--dry-run",
+				"--format",
+				"json",
+			],
+			directory,
+		);
+		expect(preview).toMatchObject({ code: 0, stderr: "" });
+		expect(JSON.parse(preview.stdout)).toMatchObject({
+			ok: true,
+			created: false,
+			template: "production",
+		});
+		expect(existsSync(join(directory, "s11tnext.config.toml"))).toBe(false);
+
+		const created = execute(["init", "--no-editor"], directory);
+		expect(created).toMatchObject({ code: 0, stderr: "" });
+		expect(created.stdout).toContain("Created minimal S11tnext project");
+		expect(existsSync(join(directory, "s11tnext.config.toml"))).toBe(true);
+		expect(execute(["init"], directory).code).toBe(1);
+		expect(execute(["init", "--config", "custom.toml"], directory).code).toBe(2);
+	});
+
+	it("runs watch through the public async entry point", async () => {
+		const directory = temporaryFixture("valid/content-first");
+		let stdout = "";
+		let stderr = "";
+		const controller = new AbortController();
+		controller.abort();
+		const code = await runCliAsync(
+			["watch", "--release-profile", "production"],
+			{
+				cwd: directory,
+				stdout: (value) => {
+					stdout += value;
+				},
+				stderr: (value) => {
+					stderr += value;
+				},
+			},
+			{ signal: controller.signal },
+		);
+		expect(code).toBe(0);
+		expect(stderr).toBe("");
+		expect(stdout.match(/Built /g)).toHaveLength(1);
+		expect(stdout).toContain("Watching s11tnext.config.toml");
+
+		stdout = "";
+		stderr = "";
+		expect(
+			await runCliAsync(["watch", "--format", "xml"], {
+				cwd: directory,
+				stdout: (value) => {
+					stdout += value;
+				},
+				stderr: (value) => {
+					stderr += value;
+				},
+			}),
+		).toBe(2);
+		expect(stdout).toBe("");
+		expect(stderr).toContain("--format must be human or json");
+		expect(stderr).toContain("Usage: s11tnext watch");
 	});
 
 	it("lints valid sources and emits machine-readable invalid diagnostics", () => {

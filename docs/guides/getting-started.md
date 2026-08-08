@@ -10,6 +10,18 @@ npm install s11tnext
 npm install --save-dev s11tnext-cli
 ```
 
+For a new project, create a starter without overwriting existing files:
+
+```sh
+npx s11tnext-cli init --template minimal
+# or, with owner and untrusted-value policy enabled
+npx s11tnext-cli init --template production --locale ja-JP --owner agent-platform
+```
+
+Use `--dry-run` to preview paths and `--no-editor` to skip `.taplo.toml`. The generated Taplo rules use
+the project-config and authoring JSON Schemas shipped in `s11tnext-cli`, so compatible editors provide
+completion and validation without a network schema fetch.
+
 ```json
 {
   "scripts": {
@@ -80,6 +92,15 @@ npm run s11tnext:build
 npm run s11tnext:check
 ```
 
+During authoring, rebuild after configuration or context changes:
+
+```sh
+npx s11tnext watch --release-profile development
+```
+
+The watcher builds once before listening. A later validation failure is reported but does not stop the
+watcher, so fixing the source triggers another build.
+
 The build writes `.s11tnext/catalog.json` and `.s11tnext/catalog.generated.ts`. Both files are staged before
 installation and the previous pair is restored if installation fails. Commit them together.
 `--check` performs no writes and reports `S11TNEXT_BUILD_STALE` when either output differs.
@@ -147,3 +168,5 @@ s11tnext --version
 See [troubleshooting](./troubleshooting.md) for common installation, build, locale, and diagnostic
 problems. Upgrades across release lines should follow the
 [compatibility policy](../specification/compatibility.md).
+Existing inline prompt templates can be moved incrementally with
+[Migrating inline prompts](./migrating-inline-prompts.md).

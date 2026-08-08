@@ -10,6 +10,11 @@ import type { CanonicalVariableDefinition } from 's11tnext/compiler';
 import type { S11tnextCatalogArtifact } from 's11tnext';
 
 // @public (undocumented)
+export type AsyncCommandOptions = {
+    signal?: AbortSignal;
+};
+
+// @public (undocumented)
 export function buildProject(options?: {
     config?: string;
     check?: boolean;
@@ -142,6 +147,9 @@ export type ResolvedAuthoringDocument = {
 
 // @public (undocumented)
 export function runCli(argumentsInput: readonly string[], io?: CommandIo): number;
+
+// @public (undocumented)
+export function runCliAsync(argumentsInput: readonly string[], io?: CommandIo, options?: AsyncCommandOptions): Promise<number>;
 
 // @public (undocumented)
 export type S11tnextDiagnostic = {

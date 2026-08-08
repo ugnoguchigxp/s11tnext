@@ -202,3 +202,17 @@ jobs:
               --title "S11tnext $VERSION" \
               --generate-notes
           fi
+      - name: Verify immutable release traceability
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_REF: ${{ inputs.ref }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          TAG="v$VERSION"
+          git fetch --tags origin
+          test "$(git cat-file -t "$TAG")" = "tag"
+          test "$(git rev-list -n 1 "$TAG")" = "$RELEASE_REF"
+          RELEASE_JSON="$(gh release view "$TAG" --json tagName,isDraft,isPrerelease)"
+          test "$(jq -r '.tagName' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.isDraft' <<<"$RELEASE_JSON")" = "false"
+          test "$(jq -r '.isPrerelease' <<<"$RELEASE_JSON")" = "false"

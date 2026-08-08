@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible defect in the Runtime, CLI, schemas, or documentation.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include secrets, prompt contents, or sensitive runtime values.
+  - type: input
+    id: version
+    attributes:
+      label: S11tnext versions
+      description: Include both s11tnext and s11tnext-cli versions.
+      placeholder: s11tnext 0.x.x, s11tnext-cli 0.x.x
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Node 24.x, npm 11.x, macOS/Linux/Windows
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide redacted source, commands, and deterministic steps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and diagnostics
+      description: Include diagnostic codes and exit codes where available.
+    validations:
+      required: true

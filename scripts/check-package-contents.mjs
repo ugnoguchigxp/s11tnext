@@ -22,6 +22,10 @@ const packageDirectories = new Map([
 	["s11tnext", "runtime"],
 	["s11tnext-cli", "cli"],
 ]);
+const cliSchemaFiles = [
+	"dist/schemas/s11tnext-authoring.schema.json",
+	"dist/schemas/s11tnext-config.schema.json",
+];
 
 function filesUnder(root) {
 	const files = [];
@@ -38,7 +42,10 @@ function isAllowed(name, packageName) {
 	if (/^dist\/(?!.*(?:^|\/)\.\.?\/)[A-Za-z0-9_./-]+\.(?:js|d\.ts)$/.test(name)) {
 		return true;
 	}
-	return packageName === "s11tnext-cli" && name === "bin/s11tnext.js";
+	return (
+		packageName === "s11tnext-cli" &&
+		(name === "bin/s11tnext.js" || cliSchemaFiles.includes(name))
+	);
 }
 
 function assertSafeTarPath(path) {
@@ -119,6 +126,11 @@ async function inspectPackage(entry) {
 		if (bin === undefined) throw new Error("CLI tarball is missing bin/s11tnext.js");
 		if (process.platform !== "win32" && ((bin.mode ?? 0) & 0o111) === 0) {
 			throw new Error("CLI bin/s11tnext.js is not executable");
+		}
+		for (const schema of cliSchemaFiles) {
+			if (!fileEntries.some((item) => item.path === `package/${schema}`)) {
+				throw new Error(`CLI tarball is missing ${schema}`);
+			}
 		}
 	}
 
