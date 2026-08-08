@@ -19,13 +19,13 @@ Reference run on Node.js 24.11.1, macOS arm64:
 
 | Measurement | Result |
 | --- | ---: |
-| Compile 100 contexts | 9.72 ms |
-| Compile 1,000 contexts | 44.27 ms |
-| Compile 10,000 contexts | 403.54 ms |
-| Validate/load 1,000 contexts | 26.64 ms |
-| Render throughput | 249,091 operations/second |
-| Minified Runtime browser bundle | 27,390 bytes |
-| Runtime / CLI tarballs | 16,410 / 22,895 bytes |
+| Compile 100 contexts | 9.69 ms |
+| Compile 1,000 contexts | 46.81 ms |
+| Compile 10,000 contexts | 426.29 ms |
+| Validate/load 1,000 contexts | 30.20 ms |
+| Render throughput | 230,876 operations/second |
+| Minified Runtime browser bundle | 27,396 bytes |
+| Runtime / CLI tarballs | 16,395 / 23,569 bytes |
 | Generated TypeScript for 1,000 contexts | 153,033 bytes |
 
 The benchmark uses a compact one-locale, one-variable context. Application results will vary with
