@@ -69,7 +69,7 @@ jobs:
             exit 1
           fi
           for _ in {1..12}; do
-            RUN="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$VERSION_HEAD&per_page=1" --jq '.workflow_runs[0] | [.id, .status, (.conclusion // "-")] | @tsv')"
+            RUN="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$VERSION_HEAD&per_page=1" --jq '(.workflow_runs[0] // empty) | [.id, .status, (.conclusion // "-")] | @tsv')"
             if [ -n "$RUN" ]; then
               read -r RUN_ID RUN_STATUS RUN_CONCLUSION <<< "$RUN"
               if [ "$RUN_CONCLUSION" = "action_required" ]; then
