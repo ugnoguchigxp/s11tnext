@@ -1,5 +1,26 @@
 # s11tnext-cli
 
+## 0.2.0
+
+### Minor Changes
+
+- 28fa293: Drop Node.js 20 after its upstream end of life. Supported Node.js releases are now 22 and 24.
+
+### Patch Changes
+
+- d5f39b1: Distinguish missing files and source directories from permission, directory, and other filesystem read
+  failures in CLI diagnostics.
+
+  The scoped source watcher and actionable filesystem diagnostics increase the packed CLI from 22,908
+  bytes on the preceding main commit to 23,602 bytes. Raise its deterministic size ceiling from 23,000 to
+  24,500 bytes, retaining 3.8% headroom while continuing to reject larger unreviewed growth.
+
+- cb2d35b: Add safe project scaffolding, continuous catalog rebuilds with a public asynchronous CLI entry point,
+  distributable editor schemas, clearer migration guidance, and a Promptfoo evaluation example. Strengthen
+  repository-wide and release traceability checks.
+- Updated dependencies [28fa293]
+  - s11tnext@0.2.0
+
 ## 0.1.3
 
 ### Patch Changes
