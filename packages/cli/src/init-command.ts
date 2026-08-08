@@ -1,15 +1,7 @@
-import {
-	closeSync,
-	mkdirSync,
-	openSync,
-	rmdirSync,
-	rmSync,
-	statSync,
-	writeFileSync,
-} from "node:fs";
+import { closeSync, mkdirSync, openSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 
-import { S11tnextDiagnosticError, type S11tnextDiagnostic } from "./diagnostics.js";
+import { type S11tnextDiagnostic, S11tnextDiagnosticError } from "./diagnostics.js";
 import { pathEntryExists, resolvesWithin } from "./path-safety.js";
 
 export type InitTemplate = "minimal" | "production";
@@ -79,15 +71,15 @@ owner = ${tomlString(options.owner)}
 [release_profiles.${tomlString(options.releaseProfile)}]
 required_locales = ["$source"]
 ${
-		options.template === "production"
-			? `
+	options.template === "production"
+		? `
 [variable_profiles."untrusted.text"]
 type = "string"
 trust = "untrusted"
 placement = "delimited-context"
 encoding = "delimited-text"
 `
-			: ""
+		: ""
 }`;
 }
 
@@ -147,28 +139,25 @@ export function initProject(options: InitOptions = {}): InitResult {
 	if (!KEYSPACE_PATTERN.test(keyspace)) {
 		fail("S11TNEXT_INIT_INVALID", "keyspace must be a valid dotted keyspace", "s11tnext.config.toml");
 	}
-	if (owner.length === 0 || /[\u0000-\u001f\u007f]/.test(owner)) {
+	const ownerHasControlCharacter = [...owner].some((character) => {
+		const codePoint = character.codePointAt(0);
+		return codePoint !== undefined && (codePoint <= 0x1f || codePoint === 0x7f);
+	});
+	if (owner.length === 0 || ownerHasControlCharacter) {
 		fail("S11TNEXT_INIT_INVALID", "owner must be a non-empty printable string", "s11tnext.config.toml");
 	}
 	if (!PROFILE_PATTERN.test(releaseProfile)) {
 		fail("S11TNEXT_INIT_INVALID", "release profile name is invalid", "s11tnext.config.toml");
 	}
 
-	const contextPath = resolve(
-		cwd,
-		"contexts",
-		...keyspace.split("."),
-		"greeting.context.toml",
-	);
+	const contextPath = resolve(cwd, "contexts", ...keyspace.split("."), "greeting.context.toml");
 	const outputs = [
 		{
 			path: resolve(cwd, "s11tnext.config.toml"),
 			content: configBytes({ keyspace, locale, owner, releaseProfile, template }),
 		},
 		{ path: contextPath, content: contextBytes(template) },
-		...(options.editor === false
-			? []
-			: [{ path: resolve(cwd, ".taplo.toml"), content: taploBytes() }]),
+		...(options.editor === false ? [] : [{ path: resolve(cwd, ".taplo.toml"), content: taploBytes() }]),
 	];
 	for (const output of outputs) {
 		const display = displayPath(cwd, output.path);
@@ -189,8 +178,10 @@ export function initProject(options: InitOptions = {}): InitResult {
 
 	const createdFiles: string[] = [];
 	const createdDirectories: string[] = [];
+	let activeFile = "s11tnext.config.toml";
 	try {
 		for (const output of outputs) {
+			activeFile = displayPath(cwd, output.path);
 			const directory = dirname(output.path);
 			const missingDirectories: string[] = [];
 			let cursor = directory;
@@ -234,7 +225,14 @@ export function initProject(options: InitOptions = {}): InitResult {
 			}
 		}
 	} catch (error) {
-		for (const path of createdFiles.reverse()) rmSync(path, { force: true });
+		let cleanupFailed = false;
+		for (const path of createdFiles.reverse()) {
+			try {
+				rmSync(path, { force: true });
+			} catch {
+				cleanupFailed = true;
+			}
+		}
 		for (const path of new Set(createdDirectories)) {
 			try {
 				rmdirSync(path);
@@ -242,7 +240,14 @@ export function initProject(options: InitOptions = {}): InitResult {
 				// Preserve directories that are no longer empty or were concurrently created.
 			}
 		}
-		throw error;
+		if (error instanceof S11tnextDiagnosticError) throw error;
+		fail(
+			"S11TNEXT_INIT_IO",
+			cleanupFailed
+				? "Initialization failed and partial files could not be removed"
+				: "Initialization failed while writing project files",
+			activeFile,
+		);
 	}
 	return { created: true, files, template, locale, releaseProfile };
 }

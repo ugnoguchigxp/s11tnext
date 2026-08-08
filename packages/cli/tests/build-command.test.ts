@@ -1,5 +1,7 @@
 import {
+	chmodSync,
 	cpSync,
+	mkdirSync,
 	mkdtempSync,
 	readFileSync,
 	rmSync,
@@ -48,10 +50,7 @@ describe("build command", () => {
 	it("applies configured TypeScript indentation through the build command", () => {
 		const directory = temporaryFixture();
 		const configPath = join(directory, "s11tnext.config.toml");
-		writeFileSync(
-			configPath,
-			`${readFileSync(configPath, "utf8")}\n[generation]\ntypescript_indent = 2\n`,
-		);
+		writeFileSync(configPath, `${readFileSync(configPath, "utf8")}\n[generation]\ntypescript_indent = 2\n`);
 
 		const result = buildProject({ cwd: directory, releaseProfile: "production" });
 		const generated = readFileSync(result.typesPath, "utf8");
@@ -93,9 +92,7 @@ describe("build command", () => {
 		expect(artifact).toMatchObject({
 			format: "s11tnext.catalog",
 		});
-		expect(readFileSync(result.typesPath, "utf8")).toContain(
-			'import { createCatalog } from "s11tnext";',
-		);
+		expect(readFileSync(result.typesPath, "utf8")).toContain('import { createCatalog } from "s11tnext";');
 		expect(() => createCatalog(artifact)).not.toThrow();
 		expect(
 			inspectContext("structuredGeneration.repair", {
@@ -117,7 +114,9 @@ describe("build command", () => {
 		const beforeJson = readFileSync(result.catalogPath, "utf8");
 		const beforeTypes = readFileSync(result.typesPath, "utf8");
 		writeFileSync(join(directory, "contexts/broken.context.toml"), "text = [");
-		expect(() => buildProject({ cwd: directory, releaseProfile: "production" })).toThrow(S11tnextDiagnosticError);
+		expect(() => buildProject({ cwd: directory, releaseProfile: "production" })).toThrow(
+			S11tnextDiagnosticError,
+		);
 		expect(readFileSync(result.catalogPath, "utf8")).toBe(beforeJson);
 		expect(readFileSync(result.typesPath, "utf8")).toBe(beforeTypes);
 	});
@@ -138,5 +137,32 @@ describe("build command", () => {
 			}),
 		);
 		expect(() => readFileSync(join(outside, "catalog.json"), "utf8")).toThrow();
+	});
+
+	it.skipIf(process.platform === "win32")("reports an unwritable output directory", () => {
+		const directory = temporaryFixture("valid/content-first");
+		const lockedDirectory = join(directory, "locked");
+		mkdirSync(lockedDirectory);
+		chmodSync(lockedDirectory, 0o500);
+		const configPath = join(directory, "s11tnext.config.toml");
+		writeFileSync(
+			configPath,
+			readFileSync(configPath, "utf8").replace('out_dir = ".s11tnext"', 'out_dir = "locked/output"'),
+		);
+		try {
+			expect(() => buildProject({ cwd: directory, releaseProfile: "production" })).toThrowError(
+				expect.objectContaining<S11tnextDiagnosticError>({
+					diagnostics: [
+						expect.objectContaining({
+							code: "S11TNEXT_OUTPUT_DIR_UNWRITABLE",
+							file: "s11tnext.config.toml",
+							path: ["out_dir"],
+						}),
+					],
+				}),
+			);
+		} finally {
+			chmodSync(lockedDirectory, 0o700);
+		}
 	});
 });
