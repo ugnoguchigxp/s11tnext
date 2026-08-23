@@ -53,6 +53,6 @@
     "test:browser-bundle": "node ../../scripts/check-browser-bundle.mjs"
   },
   "dependencies": {
-    "@noble/hashes": "2.2.0"
+    "@noble/hashes": "2.3.0"
   }
 }
