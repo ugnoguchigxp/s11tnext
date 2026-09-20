@@ -51,6 +51,6 @@
   },
   "dependencies": {
     "s11tnext": "workspace:*",
-    "smol-toml": "1.7.1"
+    "smol-toml": "1.8.0"
   }
 }
